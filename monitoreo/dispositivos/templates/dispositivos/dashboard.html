@@ -1,0 +1,167 @@
+{% extends "dispositivos/base.html" %}
+{% block title %}EcoEnergy Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Panel de Control - EcoEnergy</h2>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Categoría</label>
+      <select name="category" class="form-select">
+        <option value="">Todas</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}" {% if category.id|stringformat:"s" == request.GET.category %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Zona</label>
+      <select name="zone" class="form-select">
+        <option value="">Todas</option>
+        {% for zone in zones %}
+          <option value="{{ zone.id }}" {% if zone.id|stringformat:"s" == request.GET.zone %}selected{% endif %}>
+            {{ zone.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Desde</label>
+      <input type="date" name="from" class="form-control" value="{{ request.GET.from }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Hasta</label>
+      <input type="date" name="to" class="form-control" value="{{ request.GET.to }}">
+    </div>
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
+      <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-2">Limpiar filtros</a>
+    </div>
+  </form>
+
+  <!-- Conteos -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card border-primary">
+        <div class="card-body">
+          <h5 class="card-title">Dispositivos por Categoría</h5>
+          {% if category_counts %}
+            <ul class="list-group list-group-flush">
+              {% for item in category_counts %}
+                <li class="list-group-item d-flex justify-content-between">
+                  {{ item.category__name }} <span class="badge bg-primary">{{ item.count }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No hay dispositivos en las categorías seleccionadas.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-success">
+        <div class="card-body">
+          <h5 class="card-title">Dispositivos por Zona</h5>
+          {% if zone_counts %}
+            <ul class="list-group list-group-flush">
+              {% for item in zone_counts %}
+                <li class="list-group-item d-flex justify-content-between">
+                  {{ item.zone__name }} <span class="badge bg-success">{{ item.count }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No hay dispositivos en las zonas seleccionadas.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-danger">
+        <div class="card-body">
+          <h5 class="card-title">Alertas de la Semana</h5>
+          {% if weekly_alerts %}
+            <ul class="list-group list-group-flush">
+              {% for item in weekly_alerts %}
+                <li class="list-group-item d-flex justify-content-between">
+                  {{ item.status }} <span class="badge bg-danger">{{ item.count }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No se han generado alertas esta semana.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mediciones -->
+  <h4 class="mb-3">Últimas 10 Mediciones</h4>
+  {% if recent_measurements %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Fecha/Hora</th>
+          <th>Dispositivo</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in recent_measurements %}
+          <tr>
+            <td>{{ m.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ m.device.name }}</td>
+            <td>{{ m.consumption_w }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No hay mediciones recientes para los filtros seleccionados.</p>
+  {% endif %}
+
+  <!-- Alertas -->
+  <h4 class="mb-3">Alertas Recientes</h4>
+  {% if recent_alerts %}
+    <div class="list-group mb-4">
+      {% for alert in recent_alerts %}
+        <div class="list-group-item">
+          <strong>{{ alert.measurement.device.name }}</strong>: {{ alert.message }}
+          <span class="badge bg-warning text-dark ms-2">{{ alert.reviewed|yesno:"Revisada,Pendiente" }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No se han generado alertas recientemente.</p>
+  {% endif %}
+
+  <!-- Dispositivos -->
+  <h4 class="mb-3">Dispositivos</h4>
+  {% if devices %}
+    <table class="table table-bordered">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Zona</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for device in devices %}
+          <tr>
+            <td>{{ device.name }}</td>
+            <td>{{ device.category.name }}</td>
+            <td>{{ device.zone.name }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No hay dispositivos que coincidan con los filtros seleccionados.</p>
+  {% endif %}
+  {% endblock %}

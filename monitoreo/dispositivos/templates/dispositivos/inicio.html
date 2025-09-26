@@ -1,0 +1,10 @@
+{% extends "dispositivos/base.html" %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">Bienvenido al Sistema de Monitoreo Energético</h2>
+    <p class="lead">Visualiza el consumo de tus dispositivos, detecta alertas y toma decisiones informadas.</p>
+    <a href="{% url 'alert_summary' %}" class="btn btn-warning">Ver resumen de alertas</a>
+    <a href="{% url 'login' %}" class="btn btn-primary mt-4">Iniciar sesión</a>
+</div>
+{% endblock %}

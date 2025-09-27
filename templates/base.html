@@ -39,7 +39,12 @@
                 <div class="d-flex">
                     {% if user.is_authenticated %}
                         <span class="navbar-text me-3">Hola, {{ user.email }}</span>
-                        <a href="{% url 'dispositivos:logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+                        
+                        <form action="{% url 'dispositivos:logout' %}" method="post" class="d-flex">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">Cerrar sesión</button>
+                        </form>
+                        
                     {% else %}
                         <a href="{% url 'dispositivos:login' %}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
                         <a href="{% url 'dispositivos:register' %}" class="btn btn-success">Registrarse</a>

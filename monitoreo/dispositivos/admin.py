@@ -1,48 +1,41 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Categoria, Producto, Cliente, Venta, DetalleVenta
+# Importamos los modelos de nuestra aplicación
+from .models import Usuario, Categoria, Producto, Cliente, Venta, DetalleVenta, Rol, Direccion, Nutricional
 
-# Configuración personalizada para el usuario
-class CustomUserAdmin(UserAdmin):
-    model = CustomUser
-    list_display = ('email', 'rol', 'is_staff', 'is_active')
-    list_filter = ('rol', 'is_staff', 'is_active')
-    search_fields = ('email',)
+# --- CÓDIGO CORREGIDO ---
+# Adaptamos la vista de administrador para el modelo 'Usuario' con los campos corregidos.
+class UsuarioAdmin(UserAdmin):
+    model = Usuario
+    # Usamos los nombres de campo correctos ('email', 'first_name', 'last_name')
+    list_display = ('email', 'first_name', 'last_name', 'Roles', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'Roles')
+    search_fields = ('email', 'first_name', 'last_name', 'run')
     ordering = ('email',)
+    
+    # Organizamos los campos para la vista de edición del usuario
     fieldsets = (
-        (None, {'fields': ('email', 'password', 'rol')}),
-        ('Permisos', {'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')}),
+        (None, {'fields': ('email', 'password')}),
+        ('Información Personal', {'fields': ('first_name', 'last_name', 'materno', 'run', 'fono', 'Direccion')}),
+        ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Fechas Importantes', {'fields': ('last_login', 'date_joined')}),
     )
+    
+    # Campos que aparecerán al crear un nuevo usuario desde el admin
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'rol', 'password', 'password2', 'is_staff', 'is_active')}
+            'fields': ('email', 'password', 'first_name', 'last_name', 'run', 'Roles', 'Direccion')}
         ),
     )
 
-class DetalleVentaInline(admin.TabularInline):
-    model = DetalleVenta
-    extra = 1
-
-class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre', 'categoria', 'precio', 'stock')
-    list_filter = ('categoria',)
-    search_fields = ('nombre', 'categoria__nombre')
-
-class ClienteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombres', 'paterno', 'materno', 'email', 'telefono')
-    search_fields = ('nombres', 'paterno', 'materno', 'email', 'telefono')
-
-class VentaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cliente', 'usuario', 'estado_pedido', 'fecha')
-    list_filter = ('estado_pedido', 'fecha')
-    search_fields = ('cliente__nombres', 'usuario__email')
-    inlines = [DetalleVentaInline]
-
-
-# Registro de modelos en el admin
-admin.site.register(CustomUser, CustomUserAdmin)
+# Registramos todos los modelos para que aparezcan en el panel de administración
+admin.site.register(Usuario, UsuarioAdmin)
 admin.site.register(Categoria)
-admin.site.register(Producto, ProductoAdmin)
-admin.site.register(Cliente, ClienteAdmin)
-admin.site.register(Venta, VentaAdmin)
+admin.site.register(Producto)
+admin.site.register(Cliente)
+admin.site.register(Venta)
+admin.site.register(DetalleVenta)
+admin.site.register(Rol)
+admin.site.register(Direccion)
+admin.site.register(Nutricional)

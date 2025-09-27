@@ -1,71 +1,97 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, Categoria, Producto, Cliente, Venta, DetalleVenta
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import Usuario, Producto, Categoria, Cliente, Venta, Direccion, Rol
+from django.db import transaction
 
-# Formulario para el registro de usuario (CustomUser)
+# --- FORMULARIO DE REGISTRO PERSONALIZADO ---
 class CustomRegisterForm(UserCreationForm):
-    class Meta:
-        model = CustomUser
-        fields = ['email', 'rol']
-        widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'rol': forms.Select(attrs={'class': 'form-select'}),
-        }
+    """
+    Formulario para que los usuarios se registren.
+    Incluye campos para la dirección y asigna un rol de "Cliente" por defecto.
+    """
+    # 1. Campos para que el usuario ingrese su dirección manualmente.
+    calle = forms.CharField(max_length=100, label="Calle", help_text="Nombre de la calle.")
+    numero = forms.CharField(max_length=10, label="Número")
+    depto = forms.CharField(max_length=10, required=False, label="Departamento (opcional)")
+    comuna = forms.CharField(max_length=100, label="Comuna")
+    region = forms.CharField(max_length=100, label="Región")
+    codigo_postal = forms.CharField(max_length=45, required=False, label="Código Postal (opcional)")
 
-# Formulario para Categoria
-class CategoriaForm(forms.ModelForm):
-    class Meta:
-        model = Categoria
-        fields = ['nombre', 'descripcion']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
-        }
+    class Meta(UserCreationForm.Meta):
+        model = Usuario
+        # 2. Campos del modelo Usuario que se mostrarán en el formulario.
+        fields = ('first_name', 'last_name', 'email', 'materno', 'run', 'fono')
 
-# Formulario para Producto
+    @transaction.atomic
+    def save(self, commit=True):
+        """
+        Sobrescribe el método de guardado para crear la Dirección
+        y asignar el Rol por defecto.
+        """
+        # Guarda la información básica del usuario (sin commit a la BD todavía).
+        user = super().save(commit=False)
+
+        # Crea el objeto Direccion con los datos del formulario.
+        direccion = Direccion.objects.create(
+            calle=self.cleaned_data.get('calle'),
+            numero=self.cleaned_data.get('numero'),
+            depto=self.cleaned_data.get('depto'),
+            comuna=self.cleaned_data.get('comuna'),
+            region=self.cleaned_data.get('region'),
+            codigo_postal=self.cleaned_data.get('codigo_postal')
+        )
+
+        # Asigna la dirección creada al usuario.
+        user.Direccion = direccion
+
+        # Asigna un rol por defecto.
+        try:
+            # ¡IMPORTANTE! Asegúrate de tener un Rol con nombre 'Cliente' en tu BD.
+            cliente_rol = Rol.objects.get(nombre='Cliente')
+            user.Roles = cliente_rol
+        except Rol.DoesNotExist:
+            # Si el rol no existe, el usuario se crea sin rol.
+            # Puedes crearlo desde el panel de administrador de Django.
+            pass
+
+        if commit:
+            user.save()
+
+        return user
+
+# --- FORMULARIO DE LOGIN PERSONALIZADO ---
+class CustomLoginForm(AuthenticationForm):
+    """
+    Formulario de login personalizado que usa email en lugar de username.
+    """
+    username = forms.EmailField(
+        label="Correo Electrónico",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'autofocus': True})
+    )
+    password = forms.CharField(
+        label="Contraseña",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'current-password'}),
+    )
+
+# --- OTROS FORMULARIOS DE LA APLICACIÓN ---
+
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        fields = ['nombre', 'precio', 'stock', 'categoria', 'descripcion', 'imagen']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control'}),
-            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
-        }
+        fields = '__all__'
 
-# Formulario para Cliente
+class CategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = ['nombres', 'paterno', 'materno', 'email', 'telefono']
-        widgets = {
-            'nombres': forms.TextInput(attrs={'class': 'form-control'}),
-            'paterno': forms.TextInput(attrs={'class': 'form-control'}),
-            'materno': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+        fields = '__all__'
 
-# Formulario para Venta
 class VentaForm(forms.ModelForm):
     class Meta:
         model = Venta
-        fields = ['usuario', 'cliente', 'estado_pedido']
-        widgets = {
-            'usuario': forms.Select(attrs={'class': 'form-select'}),
-            'cliente': forms.Select(attrs={'class': 'form-select'}),
-            'estado_pedido': forms.Select(attrs={'class': 'form-select'}),
-        }
-
-# Formulario para DetalleVenta
-class DetalleVentaForm(forms.ModelForm):
-    class Meta:
-        model = DetalleVenta
-        fields = ['venta', 'producto', 'cantidad']
-        widgets = {
-            'venta': forms.Select(attrs={'class': 'form-select'}),
-            'producto': forms.Select(attrs={'class': 'form-select'}),
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
+        fields = '__all__'

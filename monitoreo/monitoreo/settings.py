@@ -8,22 +8,16 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-<<<<<<< Updated upstream
+import os
+from dotenv import load_dotenv
 
-
-=======
 load_dotenv(BASE_DIR / ".env")  # Carga el .env
 
->>>>>>> Stashed changes
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-<<<<<<< Updated upstream
-SECRET_KEY = 'django-insecure-z*z+tq+*5x@z(d_k9w9!77z8%2h)d=j#y#r!e(1=7d4(2t62'
-=======
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-unsafe")
->>>>>>> Stashed changes
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
@@ -76,12 +70,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'monitoreo.wsgi.application'
-<<<<<<< Updated upstream
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-=======
 
 
 # Database
@@ -97,7 +85,6 @@ DATABASES = {
         "PASSWORD": "",       # Tu contraseña de MySQL
         "HOST": "localhost",      # O la IP de tu servidor MySQL
         "PORT": "3306",           # Puerto por defecto
->>>>>>> Stashed changes
     }
 }
 

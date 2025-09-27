@@ -1,0 +1,26 @@
+[
+  {
+    "model": "dispositivos.productoreglalerta",
+    "pk": 1,
+    "fields": {
+      "producto": 1,
+      "regla": 1
+    }
+  },
+  {
+    "model": "dispositivos.productoreglalerta",
+    "pk": 2,
+    "fields": {
+      "producto": 2,
+      "regla": 2
+    }
+  },
+  {
+    "model": "dispositivos.productoreglalerta",
+    "pk": 3,
+    "fields": {
+      "producto": 3,
+      "regla": 1
+    }
+  }
+]

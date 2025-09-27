@@ -1,0 +1,35 @@
+[
+  {
+    "model": "dispositivos.nutricional",
+    "pk": 1,
+    "fields": {
+      "ingredientes": "Harina, agua, sal, levadura",
+      "tiempo_preparacion": "3 horas",
+      "proteinas": "9g",
+      "azucar": "1g",
+      "gluten": "Sí"
+    }
+  },
+  {
+    "model": "dispositivos.nutricional",
+    "pk": 2,
+    "fields": {
+      "ingredientes": "Harina, mantequilla, azúcar, huevo",
+      "tiempo_preparacion": "4 horas",
+      "proteinas": "6g",
+      "azucar": "15g",
+      "gluten": "Sí"
+    }
+  },
+  {
+    "model": "dispositivos.nutricional",
+    "pk": 3,
+    "fields": {
+      "ingredientes": "Chocolate, harina, azúcar, huevo, mantequilla",
+      "tiempo_preparacion": "2 horas",
+      "proteinas": "8g",
+      "azucar": "40g",
+      "gluten": "Sí"
+    }
+  }
+]

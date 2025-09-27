@@ -2,14 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
-# --- Manejador de Usuario Personalizado (Ajustado y Final) ---
-
+# --- Manejador de Usuario (Sin cambios) ---
 class CustomUserManager(BaseUserManager):
-    """
-    Manager personalizado para el modelo Usuario donde el email es el identificador único.
-    """
-    # --- LÍNEA CORREGIDA ---
-    # Se cambia el parámetro de 'correo' a 'email' para que coincida con el USERNAME_FIELD
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError(_('El email es obligatorio'))
@@ -19,25 +13,50 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    # --- LÍNEA CORREGIDA ---
-    # Se cambia el parámetro de 'correo' a 'email' aquí también
     def create_superuser(self, email, password, **extra_fields):
-        """
-        Crea y guarda un Superusuario con el email y contraseña dados.
-        """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser debe tener is_staff=True.'))
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser debe tener is_superuser=True.'))
-        
         return self.create_user(email, password, **extra_fields)
 
-# --- Modelos de la Aplicación ---
+# --- MODELO USUARIO (CORREGIDO Y SIMPLIFICADO) ---
+class Usuario(AbstractUser):
+    # Desactivamos el username de Django
+    username = None
+    
+    # Redefinimos los campos para que coincidan 100% con la BD corregida.
+    # YA NO es necesario usar db_column.
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(_('email address'), unique=True)
 
+    # Tus campos personalizados
+    materno = models.CharField(max_length=100, blank=True, null=True)
+    run = models.CharField(unique=True, max_length=10)
+    fono = models.IntegerField(blank=True, null=True)
+    
+    # Relaciones
+    Direccion = models.ForeignKey('Direccion', on_delete=models.DO_NOTHING, null=True, blank=True)
+    Roles = models.ForeignKey('Rol', on_delete=models.DO_NOTHING, null=True, blank=True)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'run']
+
+    class Meta:
+        # ¡Importante! Mantenemos managed = False
+        managed = False
+        db_table = 'Usuarios'
+    
+    def __str__(self):
+        return self.email
+
+# --- El resto de los modelos no necesitan cambios ---
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=100, blank=True, null=True)
@@ -101,32 +120,6 @@ class Rol(models.Model):
     def __str__(self):
         return self.nombre
 
-class Usuario(AbstractUser):
-    username = None
-    
-    first_name = models.CharField(max_length=100, db_column='nombres')
-    last_name = models.CharField(max_length=100, db_column='paterno')
-    email = models.EmailField(_('correo'), unique=True, db_column='correo')
-
-    materno = models.CharField(max_length=100, blank=True, null=True)
-    run = models.CharField(unique=True, max_length=10)
-    fono = models.IntegerField(blank=True, null=True)
-    
-    Direccion = models.ForeignKey(Direccion, on_delete=models.DO_NOTHING, null=True, blank=True, db_column='Direccion_id')
-    Roles = models.ForeignKey(Rol, on_delete=models.DO_NOTHING, null=True, blank=True, db_column='Roles_id')
-
-    objects = CustomUserManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'run']
-
-    class Meta:
-        managed = False
-        db_table = 'Usuarios'
-    
-    def __str__(self):
-        return self.email
-
 class Cliente(models.Model):
     idclientes = models.IntegerField(primary_key=True)
     class Meta:
@@ -153,6 +146,22 @@ class DetalleVenta(models.Model):
     id = models.IntegerField(primary_key=True)
     venta_idventa = models.ForeignKey(Venta, on_delete=models.DO_NOTHING, db_column='venta_idventa')
     Lote_idLote = models.ForeignKey(Lote, on_delete=models.DO_NOTHING, db_column='Lote_idLote')
+    Lote_Productos_id = models.IntegerField() # Añadido para consistencia con tu script
     class Meta:
         managed = False
         db_table = 'Detalle venta'
+
+class ReglaAlertaVencimiento(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.CharField(max_length=255, blank=True, null=True)
+    dias_anticipacion = models.IntegerField(help_text="Días antes del vencimiento para generar la alerta")
+    def __str__(self):
+        return self.nombre
+
+class ProductoReglaAlerta(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    regla = models.ForeignKey(ReglaAlertaVencimiento, on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('producto', 'regla')
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.regla.nombre}"

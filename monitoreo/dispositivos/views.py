@@ -3,11 +3,12 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import (
     CustomRegisterForm, ProductoForm, CategoriaForm,
-    ClienteForm, VentaForm
+    ClienteForm, VentaForm, CustomLoginForm
 )
-# --- LÍNEA CORREGIDA ---
-# Se importa el modelo 'Usuario' con su nombre correcto.
 from .models import Usuario, Categoria, Producto, Cliente, Venta
+# 1. Importamos las herramientas necesarias para manejar fechas
+from datetime import date, timedelta
+from django.utils import timezone
 
 # --------------------
 # Vistas Públicas
@@ -40,19 +41,25 @@ def register(request):
 @login_required
 def dashboard(request):
     """
-    Vista para el panel de control principal. Muestra estadísticas generales.
+    Vista para el panel de control que muestra estadísticas y alertas.
     """
-    # Se utiliza el modelo 'Usuario' corregido
     total_usuarios = Usuario.objects.count()
     total_productos = Producto.objects.count()
     total_clientes = Cliente.objects.count()
     total_ventas = Venta.objects.count()
+
+    # 2. Lógica para encontrar productos que vencen pronto
+    hoy = date.today()
+    fecha_limite = hoy + timedelta(days=7) # Alerta para productos en los próximos 7 días
     
+    productos_a_vencer = Producto.objects.filter(caducidad__gte=hoy, caducidad__lte=fecha_limite).order_by('caducidad')
+
     context = {
         'total_usuarios': total_usuarios,
         'total_productos': total_productos,
         'total_clientes': total_clientes,
         'total_ventas': total_ventas,
+        'productos_a_vencer': productos_a_vencer, # 3. Se envía la lista de productos a la plantilla
     }
     return render(request, 'dispositivos/dashboard.html', context)
 
@@ -133,7 +140,7 @@ def categoria_delete(request, pk):
     return render(request, 'categoria_confirm_delete.html', {'object': categoria})
 
 
-# --- CRUD de Productos ---
+# --- CRUD de Productos (con fechas automáticas) ---
 @login_required
 def producto_list(request):
     productos = Producto.objects.all()
@@ -149,7 +156,10 @@ def producto_create(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            producto = form.save(commit=False)
+            # Asigna la fecha de creación automáticamente
+            producto.creado = timezone.now()
+            producto.save()
             return redirect('dispositivos:producto_list')
     else:
         form = ProductoForm()
@@ -161,7 +171,10 @@ def producto_update(request, pk):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
-            form.save()
+            producto_actualizado = form.save(commit=False)
+            # Asigna la fecha de modificación automáticamente
+            producto_actualizado.modificado = timezone.now()
+            producto_actualizado.save()
             return redirect('dispositivos:producto_list')
     else:
         form = ProductoForm(instance=producto)

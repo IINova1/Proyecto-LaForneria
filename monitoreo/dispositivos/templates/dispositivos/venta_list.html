@@ -13,23 +13,19 @@
                 <th>Cliente</th>
                 <th>Usuario</th>
                 <th>Estado del Pedido</th>
-                <th>Fecha</th>
-                <th>Precio Total</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for venta in ventas %}
             <tr>
-                <td>{{ venta.id }}</td>
-                <td>{{ venta.cliente.nombres }} {{ venta.cliente.paterno }}</td>
-                <td>{{ venta.usuario.email }}</td>
-                <td>{{ venta.estado_pedido }}</td>
-                <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-                <td>${{ venta.precio_total|floatformat:2 }}</td>
+                <td>{{ venta.idventa }}</td>
+                <td>{{ venta.clientes_idclientes.idclientes }}</td> <td>{{ venta.Usuarios.email }}</td>
+                <td>{{ venta.EstadoPedido }}</td>
                 <td>
-                    <a href="{% url 'dispositivos:venta_update' venta.id %}" class="btn btn-warning btn-sm">Editar</a>
-                    <a href="{% url 'dispositivos:venta_delete' venta.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    <a href="{% url 'dispositivos:venta_update' venta.idventa %}" class="btn btn-warning btn-sm">Editar</a>
+                    
+                    <a href="{% url 'dispositivos:venta_delete' venta.idventa %}" class="btn btn-danger btn-sm">Eliminar</a>
                 </td>
             </tr>
             {% empty %}

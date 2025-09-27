@@ -13,8 +13,8 @@
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Precio</th>
-                            <th>Stock</th>
-                            <th>Categoría</th>
+                            <th>Stock</th>      {# El título de la columna está bien #}
+                            <th>Categoría</th>  {# El título de la columna está bien #}
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -24,8 +24,11 @@
                                 <td>{{ producto.id }}</td>
                                 <td>{{ producto.nombre }}</td>
                                 <td>${{ producto.precio|floatformat:0 }}</td>
-                                <td>{{ producto.stock }}</td>
-                                <td>{{ producto.categoria.nombre }}</td>
+                                
+                                <td>{{ producto.stock_actual }}</td>
+                                
+                                <td>{{ producto.Categorias.nombre }}</td>
+                                
                                 <td>
                                     <a href="{% url 'dispositivos:producto_update' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
                                     <a href="{% url 'dispositivos:producto_delete' producto.id %}" class="btn btn-danger btn-sm">Eliminar</a>

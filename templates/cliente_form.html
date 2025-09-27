@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Formulario de Cliente{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ form.instance.pk|yesno:"Editar Cliente,Agregar Cliente" }}</h1>
+    <a href="{% url 'dispositivos:cliente_list' %}" class="btn btn-secondary mb-3">Volver</a>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success">Guardar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

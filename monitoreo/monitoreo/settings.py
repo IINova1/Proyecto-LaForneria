@@ -8,15 +8,26 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+<<<<<<< Updated upstream
 
 
+=======
+load_dotenv(BASE_DIR / ".env")  # Carga el .env
+
+>>>>>>> Stashed changes
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+<<<<<<< Updated upstream
 SECRET_KEY = 'django-insecure-z*z+tq+*5x@z(d_k9w9!77z8%2h)d=j#y#r!e(1=7d4(2t62'
+=======
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-unsafe")
+>>>>>>> Stashed changes
 
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+# Forzamos DEBUG a True para el entorno de desarrollo
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -49,7 +60,9 @@ ROOT_URLCONF = 'monitoreo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # --- LÍNEA MODIFICADA ---
+        # Añadimos la ruta al directorio de plantillas raíz
+        'DIRS': [os.path.join(BASE_DIR, '..', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -63,10 +76,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'monitoreo.wsgi.application'
+<<<<<<< Updated upstream
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+=======
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+ENGINE = os.getenv("DB_ENGINE", "sqlite")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "forneria",     # El nombre de tu base de datos
+        "USER": "root",           # Tu usuario de MySQL
+        "PASSWORD": "",       # Tu contraseña de MySQL
+        "HOST": "localhost",      # O la IP de tu servidor MySQL
+        "PORT": "3306",           # Puerto por defecto
+>>>>>>> Stashed changes
     }
 }
 
@@ -111,9 +142,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # ----------------------------------------------------------------------
-# Configuraciones CLASE 10 (Archivos Multimedia/Imágenes)
+# Configuraciones para Archivos Multimedia/Imágenes
 # ----------------------------------------------------------------------
 
 # URL base para servir archivos multimedia (imágenes, etc.)
@@ -124,21 +154,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ----------------------------------------------------------------------
-# Configuraciones CLASE 11 (Autenticación y Autorización)
+# Configuraciones para Autenticación y Autorización
 # ----------------------------------------------------------------------
 
 # Especifica el modelo de usuario personalizado a usar
 AUTH_USER_MODEL = 'dispositivos.CustomUser'
 
-# Redirige al usuario después de iniciar sesión al dashboard
-LOGIN_REDIRECT_URL = '/panel/'
+# Redirige al usuario al dashboard después de iniciar sesión
+LOGIN_REDIRECT_URL = '/dashboard/' # Ajustado para que coincida con tus URLs
 
-# Redirige al usuario después de cerrar sesión a la página de inicio
-LOGOUT_REDIRECT_URL = '/'
+# Redirige al usuario a la página de inicio de sesión después de cerrar sesión
+LOGOUT_REDIRECT_URL = '/login/' # Ajustado para mayor consistencia
 
 # URL a la que se redirige si el usuario intenta acceder a una vista protegida sin autenticarse
 LOGIN_URL = '/login/'
 
 # Configuración de email para entorno de desarrollo (muestra el correo en la consola)
-# Esto es necesario para el flujo de restablecimiento de contraseña
+# Necesario para el flujo de restablecimiento de contraseña
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

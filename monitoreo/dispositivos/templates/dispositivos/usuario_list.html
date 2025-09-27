@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Lista de Usuarios</h2>
+    <a href="{% url 'dispositivos:usuario_create' %}" class="btn btn-success mb-3">Agregar Usuario</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.email }}</td>
+                <td>{{ usuario.rol }}</td>
+                <td>
+                    <a href="{% url 'dispositivos:usuario_update' usuario.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'dispositivos:usuario_delete' usuario.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Ventas{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Lista de Ventas</h2>
+    <a href="{% url 'dispositivos:venta_create' %}" class="btn btn-success mb-3">Registrar Venta</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Usuario</th>
+                <th>Estado del Pedido</th>
+                <th>Fecha</th>
+                <th>Precio Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td>{{ venta.id }}</td>
+                <td>{{ venta.cliente.nombres }} {{ venta.cliente.paterno }}</td>
+                <td>{{ venta.usuario.email }}</td>
+                <td>{{ venta.estado_pedido }}</td>
+                <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                <td>${{ venta.precio_total|floatformat:2 }}</td>
+                <td>
+                    <a href="{% url 'dispositivos:venta_update' venta.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'dispositivos:venta_delete' venta.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No hay ventas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

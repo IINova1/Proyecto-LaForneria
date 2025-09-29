@@ -1,26 +1,26 @@
 [
   {
-    "model": "dispositivos.productoreglalerta",
-    "pk": 1,
+    "model": "dispositivos_productoreglaalerta",
+    "pk": 51,
     "fields": {
-      "producto": 1,
-      "regla": 1
+      "producto": 31,
+      "regla": 41
     }
   },
   {
-    "model": "dispositivos.productoreglalerta",
-    "pk": 2,
+    "model": "dispositivos_productoreglaalerta",
+    "pk": 52,
     "fields": {
-      "producto": 2,
-      "regla": 2
+      "producto": 32,
+      "regla": 42
     }
   },
   {
-    "model": "dispositivos.productoreglalerta",
-    "pk": 3,
+    "model": "dispositivos_productoreglaalerta",
+    "pk": 53,
     "fields": {
-      "producto": 3,
-      "regla": 1
+      "producto": 33,
+      "regla": 41
     }
   }
 ]

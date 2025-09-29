@@ -1,7 +1,7 @@
 [
   {
-    "model": "dispositivos.reglaalertavencimiento",
-    "pk": 1,
+    "model": "dispositivos_reglaalertavencimiento",
+    "pk": 41,
     "fields": {
       "nombre": "Vencimiento Crítico",
       "descripcion": "Alerta para productos que vencen en 3 días o menos.",
@@ -9,8 +9,8 @@
     }
   },
   {
-    "model": "dispositivos.reglaalertavencimiento",
-    "pk": 2,
+    "model": "dispositivos_reglaalertavencimiento",
+    "pk": 42,
     "fields": {
       "nombre": "Vencimiento Próximo",
       "descripcion": "Alerta para productos que vencen en 7 días.",

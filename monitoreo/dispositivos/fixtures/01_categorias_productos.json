@@ -1,7 +1,7 @@
 [
   {
     "model": "dispositivos.categoria",
-    "pk": 1,
+    "pk": 21,
     "fields": {
       "nombre": "Panadería",
       "descripcion": "Pan fresco y artesanal."
@@ -9,7 +9,7 @@
   },
   {
     "model": "dispositivos.categoria",
-    "pk": 2,
+    "pk": 22,
     "fields": {
       "nombre": "Pastelería",
       "descripcion": "Pasteles y postres dulces."
@@ -17,7 +17,7 @@
   },
   {
     "model": "dispositivos.producto",
-    "pk": 1,
+    "pk": 31,
     "fields": {
       "nombre": "Pan Baguette",
       "descripcion": "Pan de corteza crujiente.",
@@ -26,16 +26,16 @@
       "caducidad": "2025-10-05",
       "elaboracion": "2025-09-25",
       "tipo": "Artesanal",
-      "Categorias": 1,
+      "Categorias": 21,
       "stock_actual": 50,
       "stock_minimo": 10,
       "stock_maximo": 100,
-      "Nutricional": 1
+      "Nutricional": 11
     }
   },
   {
     "model": "dispositivos.producto",
-    "pk": 2,
+    "pk": 32,
     "fields": {
       "nombre": "Croissant de Mantequilla",
       "descripcion": "Clásico croissant francés.",
@@ -44,16 +44,16 @@
       "caducidad": "2025-10-10",
       "elaboracion": "2025-09-26",
       "tipo": "Hojaldre",
-      "Categorias": 2,
+      "Categorias": 22,
       "stock_actual": 30,
       "stock_minimo": 5,
       "stock_maximo": 60,
-      "Nutricional": 2
+      "Nutricional": 12
     }
   },
   {
     "model": "dispositivos.producto",
-    "pk": 3,
+    "pk": 33,
     "fields": {
       "nombre": "Torta de Chocolate",
       "descripcion": "Torta intensa de chocolate belga.",
@@ -62,11 +62,11 @@
       "caducidad": "2025-09-30",
       "elaboracion": "2025-09-24",
       "tipo": "Postre",
-      "Categorias": 2,
+      "Categorias": 22,
       "stock_actual": 10,
       "stock_minimo": 2,
       "stock_maximo": 15,
-      "Nutricional": 3
+      "Nutricional": 13
     }
   }
 ]

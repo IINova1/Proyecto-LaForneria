@@ -1,7 +1,7 @@
 [
   {
     "model": "dispositivos.nutricional",
-    "pk": 1,
+    "pk": 11,
     "fields": {
       "ingredientes": "Harina, agua, sal, levadura",
       "tiempo_preparacion": "3 horas",
@@ -12,7 +12,7 @@
   },
   {
     "model": "dispositivos.nutricional",
-    "pk": 2,
+    "pk": 12,
     "fields": {
       "ingredientes": "Harina, mantequilla, azúcar, huevo",
       "tiempo_preparacion": "4 horas",
@@ -23,7 +23,7 @@
   },
   {
     "model": "dispositivos.nutricional",
-    "pk": 3,
+    "pk": 13,
     "fields": {
       "ingredientes": "Chocolate, harina, azúcar, huevo, mantequilla",
       "tiempo_preparacion": "2 horas",

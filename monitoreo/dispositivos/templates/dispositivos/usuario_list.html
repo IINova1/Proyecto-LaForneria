@@ -20,7 +20,7 @@
             <tr>
                 <td>{{ usuario.id }}</td>
                 <td>{{ usuario.email }}</td>
-                <td>{{ usuario.rol }}</td>
+                <td>{{ usuario.Roles }}</td>
                 <td>
                     <a href="{% url 'dispositivos:usuario_update' usuario.id %}" class="btn btn-warning btn-sm">Editar</a>
                     <a href="{% url 'dispositivos:usuario_delete' usuario.id %}" class="btn btn-danger btn-sm">Eliminar</a>

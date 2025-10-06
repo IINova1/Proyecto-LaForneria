@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Pedido Exitoso{% endblock %}
+{% block content %}
+<div class="container mt-4 text-center">
+    <h2>¡Gracias por tu pedido!</h2>
+    <p>Hemos recibido tu pedido y lo estamos procesando.</p>
+    <a href="{% url 'dispositivos:ver_productos' %}" class="btn btn-primary">Seguir comprando</a>
+</div>
+{% endblock %}

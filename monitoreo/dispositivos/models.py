@@ -39,7 +39,6 @@ class Usuario(AbstractUser):
     run = models.CharField(unique=True, max_length=10)
     fono = models.IntegerField(blank=True, null=True)
     
-    # Relaciones
     Direccion = models.ForeignKey('Direccion', on_delete=models.DO_NOTHING, null=True, blank=True)
     Roles = models.ForeignKey('Rol', on_delete=models.DO_NOTHING, null=True, blank=True)
 
@@ -168,3 +167,54 @@ class ProductoReglaAlerta(models.Model):
         unique_together = ('producto', 'regla')
     def __str__(self):
         return f"{self.producto.nombre} - {self.regla.nombre}"
+    # ... (al final del archivo models.py)
+
+class Pedido(models.Model):
+    # --- INICIO DEL CÓDIGO ACTUALIZADO ---
+
+    # Definimos los posibles estados de un pedido
+    ESTADO_CHOICES = [
+        ('Pendiente', 'Pendiente'),
+        ('En preparación', 'En preparación'),
+        ('Enviado', 'Enviado'),
+        ('Completado', 'Completado'),
+        ('Cancelado', 'Cancelado'),
+    ]
+
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    fecha_pedido = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Añadimos el nuevo campo 'estado'
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='Pendiente' # Estado por defecto para nuevos pedidos
+    )
+
+    # --- FIN DEL CÓDIGO ACTUALIZADO ---
+    
+    def __str__(self):
+        return f"Pedido {self.id} de {self.usuario.email}"
+
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(Pedido, related_name='detalles', on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre}"
+    
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    mensaje = models.CharField(max_length=255)
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.mensaje
+
+    class Meta:
+        ordering = ['-fecha_creacion']

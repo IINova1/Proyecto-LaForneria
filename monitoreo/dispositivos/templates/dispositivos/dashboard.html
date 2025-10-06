@@ -23,7 +23,6 @@
     </div>
     {% endif %}
 
-
     <h1 class="mb-4">Dashboard</h1>
     <div class="row mb-4">
         <div class="col-md-3">
@@ -47,9 +46,9 @@
         <div class="col-md-3">
             <div class="card text-white bg-warning shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Ventas</h5>
-                    <p class="card-text fs-3">{{ total_ventas }}</p>
-                    <a href="{% url 'dispositivos:venta_list' %}" class="btn btn-light btn-sm">Ver todas</a>
+                    <h5 class="card-title">Pedidos</h5>
+                    <p class="card-text fs-3">{{ total_pedidos }}</p>
+                    <a href="{% url 'dispositivos:pedido_list' %}" class="btn btn-light btn-sm">Ver todos</a>
                 </div>
             </div>
         </div>

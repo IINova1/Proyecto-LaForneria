@@ -77,7 +77,6 @@ class ProductoForm(forms.ModelForm):
         }
 
 
-# --- OTROS FORMULARIOS DE LA APLICACIÓN ---
 
 class CategoriaForm(forms.ModelForm):
     class Meta:

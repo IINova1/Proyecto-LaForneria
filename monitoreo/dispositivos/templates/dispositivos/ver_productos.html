@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Nuestros Productos{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Nuestros Productos</h1>
+    <div class="row">
+        {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text">{{ producto.descripcion }}</p>
+                    <p><strong>Precio:</strong> ${{ producto.precio }}</p>
+                    <form action="{% url 'dispositivos:agregar_al_carrito' producto.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="number" name="cantidad" value="1" min="1" class="form-control">
+                            <button type="submit" class="btn btn-primary">Agregar al Carrito</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

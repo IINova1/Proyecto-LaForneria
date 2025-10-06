@@ -17,6 +17,16 @@ urlpatterns = [
     path('usuarios/<int:pk>/editar/', views.usuario_update, name='usuario_update'),
     path('usuarios/<int:pk>/eliminar/', views.usuario_delete, name='usuario_delete'),
 
+    # --- URLs para el Carrito de Compras ---
+    path('tienda/', views.ver_productos, name='ver_productos'),
+    path('carrito/agregar/<int:pk>/', views.agregar_al_carrito, name='agregar_al_carrito'),
+    path('carrito/', views.ver_carrito, name='ver_carrito'),
+    path('pedido/realizar/', views.realizar_pedido, name='realizar_pedido'),
+    path('pedido/exitoso/', views.pedido_exitoso, name='pedido_exitoso'),
+    path('pedidos/', views.pedido_list, name='pedido_list'),
+    path('pedidos/<int:pk>/', views.pedido_detail, name='pedido_detail'), # <-- AÑADIR ESTA LÍNEA
+
+
     # Categoría
     path('categorias/', views.categoria_list, name='categoria_list'),
     path('categorias/crear/', views.categoria_create, name='categoria_create'),
@@ -35,12 +45,6 @@ urlpatterns = [
     path('clientes/crear/', views.cliente_create, name='cliente_create'),
     path('clientes/<int:pk>/editar/', views.cliente_update, name='cliente_update'),
     path('clientes/<int:pk>/eliminar/', views.cliente_delete, name='cliente_delete'),
-
-    # Venta
-    path('ventas/', views.venta_list, name='venta_list'),
-    path('ventas/crear/', views.venta_create, name='venta_create'),
-    path('ventas/<int:pk>/editar/', views.venta_update, name='venta_update'),
-    path('ventas/<int:pk>/eliminar/', views.venta_delete, name='venta_delete'),
 
     # --- URLs de Autenticación ---
     path('login/', auth_views.LoginView.as_view(template_name='dispositivos/login.html', authentication_form=CustomLoginForm), name='login'),

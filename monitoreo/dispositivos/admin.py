@@ -57,22 +57,16 @@ class DireccionAdmin(admin.ModelAdmin):
     list_filter = ('region', 'comuna')
     ordering = ('region', 'comuna')
 
-# --- Admin para Series de Tiempo (equivalente a Measurement) ---
+
 
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
-    # La tabla 'venta' no tiene un campo de fecha, así que no podemos usar date_hierarchy.
-    # Si tuvieras un campo `fecha_venta = models.DateTimeField()`, la línea sería:
-    # date_hierarchy = 'fecha_venta'
     list_display = ('idventa', 'Usuarios', 'EstadoPedido', 'clientes_idclientes')
     search_fields = ('Usuarios__email', 'EstadoPedido')
     list_filter = ('EstadoPedido',)
     ordering = ('-idventa',) # Orden descendente por ID
     list_select_related = ('Usuarios', 'clientes_idclientes')
 
-
-# --- Registros del Modelo de Usuario y otros ---
-# Se mantiene el admin personalizado para Usuario que ya tenías
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
     list_display = ('email', 'first_name', 'last_name', 'Roles', 'is_staff', 'is_active')
@@ -81,10 +75,12 @@ class UsuarioAdmin(admin.ModelAdmin):
     ordering = ('email',)
     list_select_related = ('Roles', 'Direccion')
     
+    # --- BLOQUE CORREGIDO ---
+    # Se eliminaron 'groups' y 'user_permissions' para evitar el error con la base de datos.
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Información Personal', {'fields': ('first_name', 'last_name', 'materno', 'run', 'fono', 'Direccion')}),
-        ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser')}),
         ('Fechas Importantes', {'fields': ('last_login', 'date_joined')}),
     )
 
@@ -92,3 +88,28 @@ class UsuarioAdmin(admin.ModelAdmin):
 admin.site.register(Rol)
 admin.site.register(Nutricional)
 admin.site.register(DetalleVenta)
+
+# --- AÑADE ESTE CÓDIGO AL FINAL DE admin.py ---
+
+from .models import Pedido, DetallePedido
+
+# Clase para mostrar los detalles del pedido en línea dentro del admin de Pedido
+class DetallePedidoInline(admin.TabularInline):
+    model = DetallePedido
+    extra = 0 # No mostrar formularios extra para añadir detalles
+    readonly_fields = ('producto', 'cantidad', 'precio') # Campos de solo lectura
+
+@admin.register(Pedido)
+class PedidoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'usuario', 'fecha_pedido', 'total', 'estado')
+    list_filter = ('estado', 'fecha_pedido')
+    search_fields = ('id', 'usuario__email')
+    ordering = ('-fecha_pedido',)
+    
+    # Habilita la edición del estado directamente desde la lista
+    list_editable = ('estado',)
+    
+    # Muestra los detalles del pedido dentro de la vista de un pedido individual
+    inlines = [DetallePedidoInline]
+
+# --- FIN DEL CÓDIGO A AÑADIR ---

@@ -8,14 +8,20 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")  # ← carga el .env
 
+load_dotenv(BASE_DIR / ".env")  # Carga el .env
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-unsafe")
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-
 
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+# Forzamos DEBUG a True para el entorno de desarrollo
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -48,7 +54,8 @@ ROOT_URLCONF = 'monitoreo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # Apunta a la carpeta 'templates' en la raíz del proyecto
+        'DIRS': [BASE_DIR.parent / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -62,18 +69,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'monitoreo.wsgi.application'
-ENGINE = os.getenv("DB_ENGINE", "sqlite")
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "laforneria",     # el nombre de tu base
-        "USER": "root",           # tu usuario de MySQL
-        "PASSWORD": "1234",# tu contraseña de MySQL
-        "HOST": "localhost",      # o la IP de tu servidor MySQL
-        "PORT": "3306",           # puerto por defecto
+        "NAME": "forneria",     # El nombre de tu base de datos
+        "USER": "root",           # Tu usuario de MySQL
+        "PASSWORD": "",       # Tu contraseña de MySQL
+        "HOST": "localhost",      # O la IP de tu servidor MySQL
+        "PORT": "3306",           # Puerto por defecto
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -97,8 +108,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'es-cl' # Zona horaria chilena
-TIME_ZONE = 'America/Santiago' # Zona horaria chilena
+LANGUAGE_CODE = 'es-cl'
+TIME_ZONE = 'America/Santiago'
 
 USE_I18N = True
 
@@ -115,34 +126,30 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # ----------------------------------------------------------------------
-# Configuraciones CLASE 10 (Archivos Multimedia/Imágenes)
+# Configuraciones para Archivos Multimedia/Imágenes
 # ----------------------------------------------------------------------
 
-# URL base para servir archivos multimedia (imágenes, etc.)
 MEDIA_URL = '/media/'
-
-# Ruta absoluta del sistema de archivos donde se almacenan los archivos multimedia
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ----------------------------------------------------------------------
-# Configuraciones CLASE 11 (Autenticación y Autorización)
+# Configuraciones para Autenticación y Autorización
 # ----------------------------------------------------------------------
 
-# Especifica el modelo de usuario personalizado a usar
-AUTH_USER_MODEL = 'dispositivos.CustomUser'
+# --- LÍNEA CORREGIDA ---
+# Especifica el modelo de usuario personalizado a usar, que ahora es 'Usuario'
+AUTH_USER_MODEL = 'dispositivos.Usuario'
 
-# Redirige al usuario después de iniciar sesión al dashboard
-LOGIN_REDIRECT_URL = '/panel/'
+# Redirige al usuario al dashboard después de iniciar sesión
+LOGIN_REDIRECT_URL = '/dashboard/'
 
-# Redirige al usuario después de cerrar sesión a la página de inicio
-LOGOUT_REDIRECT_URL = '/'
+# Redirige al usuario a la página de inicio de sesión después de cerrar sesión
+LOGOUT_REDIRECT_URL = '/login/'
 
 # URL a la que se redirige si el usuario intenta acceder a una vista protegida sin autenticarse
 LOGIN_URL = '/login/'
 
 # Configuración de email para entorno de desarrollo (muestra el correo en la consola)
-# Esto es necesario para el flujo de restablecimiento de contraseña
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

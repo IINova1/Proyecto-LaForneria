@@ -4,6 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import Pedido, DetallePedido
 
+# Se importó el framework de mensajes de Django
+from django.contrib import messages
+
 # Se eliminaron 'VentaForm' y 'Venta' de las importaciones
 from .forms import (
     CustomRegisterForm, ProductoForm, CategoriaForm,
@@ -52,12 +55,19 @@ def agregar_al_carrito(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     cantidad = int(request.POST.get('cantidad', 1))
     carrito = request.session.get('carrito', {})
+    
     if str(pk) in carrito:
         carrito[str(pk)] += cantidad
     else:
         carrito[str(pk)] = cantidad
+    
     request.session['carrito'] = carrito
-    return redirect('dispositivos:ver_carrito')
+    
+    # --- CAMBIO REALIZADO ---
+    # 1. Se añade un mensaje de éxito para notificar al usuario.
+    messages.success(request, f'¡"{producto.nombre}" se ha añadido a tu carrito!')
+    # 2. Se redirige de vuelta a la tienda en lugar del carrito.
+    return redirect('dispositivos:ver_productos')
 
 def ver_carrito(request):
     """
@@ -82,17 +92,21 @@ def realizar_pedido(request):
     carrito = request.session.get('carrito', {})
     if not carrito:
         return redirect('dispositivos:ver_productos')
+    
     total_pedido = 0
     items_para_pedido = []
     for producto_id, cantidad in carrito.items():
         producto = get_object_or_404(Producto, pk=producto_id)
         total_pedido += producto.precio * cantidad
         items_para_pedido.append((producto, cantidad))
+    
     pedido = Pedido.objects.create(usuario=request.user, total=total_pedido)
+    
     for producto, cantidad in items_para_pedido:
         DetallePedido.objects.create(pedido=pedido, producto=producto, cantidad=cantidad, precio=producto.precio)
         producto.stock_actual -= cantidad
         producto.save()
+        
     request.session['carrito'] = {}
     return redirect('dispositivos:pedido_exitoso')
 

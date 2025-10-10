@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
-# --- Manejador de Usuario (Sin cambios) ---
+# --- Manejador de Usuario ---
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -23,39 +23,29 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_('Superuser debe tener is_superuser=True.'))
         return self.create_user(email, password, **extra_fields)
 
-# --- MODELO USUARIO (CORREGIDO Y SIMPLIFICADO) ---
+# --- Modelo Usuario ---
 class Usuario(AbstractUser):
-    # Desactivamos el username de Django
     username = None
-    
-    # Redefinimos los campos para que coincidan 100% con la BD corregida.
-    # YA NO es necesario usar db_column.
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(_('email address'), unique=True)
-
-    # Tus campos personalizados
     materno = models.CharField(max_length=100, blank=True, null=True)
     run = models.CharField(unique=True, max_length=10)
     fono = models.IntegerField(blank=True, null=True)
-    
     Direccion = models.ForeignKey('Direccion', on_delete=models.DO_NOTHING, null=True, blank=True)
     Roles = models.ForeignKey('Rol', on_delete=models.DO_NOTHING, null=True, blank=True)
-
     objects = CustomUserManager()
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'run']
 
     class Meta:
-        # ¡Importante! Mantenemos managed = False
         managed = False
         db_table = 'Usuarios'
-    
+
     def __str__(self):
         return self.email
 
-# --- El resto de los modelos no necesitan cambios ---
+# --- Modelos ---
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=100, blank=True, null=True)
@@ -74,7 +64,6 @@ class Nutricional(models.Model):
     class Meta:
         managed = False
         db_table = 'Nutricional'
-
     def __str__(self):
         return f"ingredientes {self.id}"
 
@@ -148,7 +137,7 @@ class DetalleVenta(models.Model):
     id = models.IntegerField(primary_key=True)
     venta_idventa = models.ForeignKey(Venta, on_delete=models.DO_NOTHING, db_column='venta_idventa')
     Lote_idLote = models.ForeignKey(Lote, on_delete=models.DO_NOTHING, db_column='Lote_idLote')
-    Lote_Productos_id = models.IntegerField() # Añadido para consistencia con tu script
+    Lote_Productos_id = models.IntegerField()
     class Meta:
         managed = False
         db_table = 'Detalle venta'
@@ -156,7 +145,7 @@ class DetalleVenta(models.Model):
 class ReglaAlertaVencimiento(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.CharField(max_length=255, blank=True, null=True)
-    dias_anticipacion = models.IntegerField(help_text="Días antes del vencimiento para generar la alerta")
+    dias_anticipacion = models.IntegerField()
     def __str__(self):
         return self.nombre
 
@@ -167,12 +156,8 @@ class ProductoReglaAlerta(models.Model):
         unique_together = ('producto', 'regla')
     def __str__(self):
         return f"{self.producto.nombre} - {self.regla.nombre}"
-    # ... (al final del archivo models.py)
 
 class Pedido(models.Model):
-    # --- INICIO DEL CÓDIGO ACTUALIZADO ---
-
-    # Definimos los posibles estados de un pedido
     ESTADO_CHOICES = [
         ('Pendiente', 'Pendiente'),
         ('En preparación', 'En preparación'),
@@ -180,20 +165,10 @@ class Pedido(models.Model):
         ('Completado', 'Completado'),
         ('Cancelado', 'Cancelado'),
     ]
-
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     fecha_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    # Añadimos el nuevo campo 'estado'
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='Pendiente' # Estado por defecto para nuevos pedidos
-    )
-
-    # --- FIN DEL CÓDIGO ACTUALIZADO ---
-    
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Pendiente')
     def __str__(self):
         return f"Pedido {self.id} de {self.usuario.email}"
 
@@ -202,19 +177,16 @@ class DetallePedido(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     cantidad = models.IntegerField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-
     def __str__(self):
         return f"{self.cantidad} x {self.producto.nombre}"
-    
+
 class Notificacion(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     mensaje = models.CharField(max_length=255)
     leido = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, null=True, blank=True)
-
     def __str__(self):
         return self.mensaje
-
     class Meta:
         ordering = ['-fecha_creacion']

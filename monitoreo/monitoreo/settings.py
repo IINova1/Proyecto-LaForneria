@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dispositivos',  # Tu app
+    'dispositivos',  # app
 ]
 
 MIDDLEWARE = [
@@ -77,14 +77,16 @@ WSGI_APPLICATION = 'monitoreo.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "forneria",     # El nombre de tu base de datos
-        "USER": "root",           # Tu usuario de MySQL
-        "PASSWORD": "",       # Tu contraseña de MySQL
-        "HOST": "localhost",      # O la IP de tu servidor MySQL
-        "PORT": "3306",           # Puerto por defecto
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -126,6 +128,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# ----------------------------------------------------------------------
+# Configuraciones para Archivos Multimedia/Imágenes
+# ----------------------------------------------------------------------
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

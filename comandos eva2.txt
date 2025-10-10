@@ -1,0 +1,16 @@
+comandos,
+activar entorno virtual
+1) python -m venv env
+2) env\Scripts\activate
+
+instalar dependencias
+
+pip install -r requirements.txt
+
+migraciones
+
+python manage.py makemigrations
+python manage.py migrate
+
+semillas
+python manage.py seed_catalog_es

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     Usuario, Categoria, Producto, Cliente, Venta, DetalleVenta, 
-    Rol, Direccion, Nutricional, ReglaAlertaVencimiento, ProductoReglaAlerta
+    Rol, Direccion, Nutricional, ReglaAlertaVencimiento, ProductoReglaAlerta,
+    Pedido, DetallePedido
 )
 
 # --- Admin para Modelos de Catálogo (Maestros) ---
@@ -12,13 +13,18 @@ class CategoriaAdmin(admin.ModelAdmin):
     search_fields = ('nombre',)
     ordering = ('nombre',)
 
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
+
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
+    """Este módulo es visible para todo el personal (staff)."""
     list_display = ('nombre', 'marca', 'precio', 'stock_actual', 'caducidad', 'Categorias')
     search_fields = ('nombre', 'marca')
     list_filter = ('Categorias',)
     ordering = ('caducidad',)
-    list_select_related = ('Categorias', 'Nutricional') # Optimiza la carga de la categoría y nutricional
+    list_select_related = ('Categorias', 'Nutricional')
 
 @admin.register(ReglaAlertaVencimiento)
 class ReglaAlertaVencimientoAdmin(admin.ModelAdmin):
@@ -26,11 +32,15 @@ class ReglaAlertaVencimientoAdmin(admin.ModelAdmin):
     search_fields = ('nombre',)
     list_filter = ('dias_anticipacion',)
     ordering = ('dias_anticipacion',)
+    
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
 
 @admin.register(ProductoReglaAlerta)
 class ProductoReglaAlertaAdmin(admin.ModelAdmin):
     list_display = ('get_producto_nombre', 'get_regla_nombre')
-    list_filter = ('regla__nombre',) # Filtro por el nombre de la regla
+    list_filter = ('regla__nombre',)
     search_fields = ('producto__nombre', 'regla__nombre')
     list_select_related = ('producto', 'regla')
 
@@ -42,13 +52,20 @@ class ProductoReglaAlertaAdmin(admin.ModelAdmin):
     def get_regla_nombre(self, obj):
         return obj.regla.nombre
 
-# --- Admin para Modelos Operacionales (equivalente a Cliente/Área) ---
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
+
+# --- Admin para Modelos Operacionales ---
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    # Asumiendo que el modelo Cliente tendrá más campos en el futuro.
     list_display = ('idclientes',)
     search_fields = ('idclientes',)
+
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
 
 @admin.register(Direccion)
 class DireccionAdmin(admin.ModelAdmin):
@@ -57,15 +74,21 @@ class DireccionAdmin(admin.ModelAdmin):
     list_filter = ('region', 'comuna')
     ordering = ('region', 'comuna')
 
-
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
 
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
     list_display = ('idventa', 'Usuarios', 'EstadoPedido', 'clientes_idclientes')
     search_fields = ('Usuarios__email', 'EstadoPedido')
     list_filter = ('EstadoPedido',)
-    ordering = ('-idventa',) # Orden descendente por ID
+    ordering = ('-idventa',)
     list_select_related = ('Usuarios', 'clientes_idclientes')
+
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
@@ -75,29 +98,24 @@ class UsuarioAdmin(admin.ModelAdmin):
     ordering = ('email',)
     list_select_related = ('Roles', 'Direccion')
     
-    # --- BLOQUE CORREGIDO ---
-    # Se eliminaron 'groups' y 'user_permissions' para evitar el error con la base de datos.
+    # --- BLOQUE CORREGIDO Y FINAL ---
+    # Se añaden 'groups' y 'user_permissions' para que la caja de permisos sea visible.
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Información Personal', {'fields': ('first_name', 'last_name', 'materno', 'run', 'fono', 'Direccion')}),
-        ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser')}),
+        ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Fechas Importantes', {'fields': ('last_login', 'date_joined')}),
     )
 
-# Registros adicionales para tener un admin completo
-admin.site.register(Rol)
-admin.site.register(Nutricional)
-admin.site.register(DetalleVenta)
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
 
-# --- AÑADE ESTE CÓDIGO AL FINAL DE admin.py ---
-
-from .models import Pedido, DetallePedido
-
-# Clase para mostrar los detalles del pedido en línea dentro del admin de Pedido
+# --- Inline para DetallePedido ---
 class DetallePedidoInline(admin.TabularInline):
     model = DetallePedido
-    extra = 0 # No mostrar formularios extra para añadir detalles
-    readonly_fields = ('producto', 'cantidad', 'precio') # Campos de solo lectura
+    extra = 0
+    readonly_fields = ('producto', 'cantidad', 'precio')
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
@@ -105,11 +123,16 @@ class PedidoAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'fecha_pedido')
     search_fields = ('id', 'usuario__email')
     ordering = ('-fecha_pedido',)
-    
-    # Habilita la edición del estado directamente desde la lista
     list_editable = ('estado',)
-    
-    # Muestra los detalles del pedido dentro de la vista de un pedido individual
     inlines = [DetallePedidoInline]
 
-# --- FIN DEL CÓDIGO A AÑADIR ---
+    def has_module_permission(self, request):
+        """Solo los superusuarios pueden ver este módulo."""
+        return request.user.is_superuser
+
+# --- Registros Adicionales ---
+# Django registrará estos modelos, pero gracias a has_module_permission,
+# solo serán visibles para el superusuario.
+admin.site.register(Rol)
+admin.site.register(Nutricional)
+admin.site.register(DetalleVenta)

@@ -1,167 +1,67 @@
-{% extends "dispositivos/base.html" %}
-{% block title %}EcoEnergy Dashboard{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">Panel de Control - EcoEnergy</h2>
+<div class="container py-4">
 
-  <form method="get" class="row g-3 mb-4">
-    <div class="col-md-3">
-      <label class="form-label">Categoría</label>
-      <select name="category" class="form-select">
-        <option value="">Todas</option>
-        {% for category in categories %}
-          <option value="{{ category.id }}" {% if category.id|stringformat:"s" == request.GET.category %}selected{% endif %}>
-            {{ category.name }}
-          </option>
-        {% endfor %}
-      </select>
+    {% if productos_a_vencer %}
+    <div class="alert alert-warning shadow-sm border-0" role="alert">
+        <h4 class="alert-heading">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
+            ¡Atención! Productos por Vencer
+        </h4>
+        <p>Los siguientes productos están a punto de caducar en los próximos 7 días. Por favor, revísalos para gestionar el inventario.</p>
+        <hr>
+        <ul class="mb-0">
+            {% for producto in productos_a_vencer %}
+            <li>
+                <strong>{{ producto.nombre }} (Marca: {{ producto.marca }})</strong> - Vence el: <strong>{{ producto.caducidad|date:"d/m/Y" }}</strong>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
-    <div class="col-md-3">
-      <label class="form-label">Zona</label>
-      <select name="zone" class="form-select">
-        <option value="">Todas</option>
-        {% for zone in zones %}
-          <option value="{{ zone.id }}" {% if zone.id|stringformat:"s" == request.GET.zone %}selected{% endif %}>
-            {{ zone.name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Desde</label>
-      <input type="date" name="from" class="form-control" value="{{ request.GET.from }}">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Hasta</label>
-      <input type="date" name="to" class="form-control" value="{{ request.GET.to }}">
-    </div>
-    <div class="col-12 text-end">
-      <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
-      <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-2">Limpiar filtros</a>
-    </div>
-  </form>
+    {% endif %}
 
-  <!-- Conteos -->
-  <div class="row mb-4">
-    <div class="col-md-4">
-      <div class="card border-primary">
-        <div class="card-body">
-          <h5 class="card-title">Dispositivos por Categoría</h5>
-          {% if category_counts %}
-            <ul class="list-group list-group-flush">
-              {% for item in category_counts %}
-                <li class="list-group-item d-flex justify-content-between">
-                  {{ item.category__name }} <span class="badge bg-primary">{{ item.count }}</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted">No hay dispositivos en las categorías seleccionadas.</p>
-          {% endif %}
+
+    <h1 class="mb-4">Dashboard</h1>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text fs-3">{{ total_clientes }}</p>
+                    <a href="{% url 'dispositivos:cliente_list' %}" class="btn btn-light btn-sm">Ver todos</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-success">
-        <div class="card-body">
-          <h5 class="card-title">Dispositivos por Zona</h5>
-          {% if zone_counts %}
-            <ul class="list-group list-group-flush">
-              {% for item in zone_counts %}
-                <li class="list-group-item d-flex justify-content-between">
-                  {{ item.zone__name }} <span class="badge bg-success">{{ item.count }}</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted">No hay dispositivos en las zonas seleccionadas.</p>
-          {% endif %}
+        <div class="col-md-3">
+            <div class="card text-white bg-success shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text fs-3">{{ total_productos }}</p>
+                    <a href="{% url 'dispositivos:producto_list' %}" class="btn btn-light btn-sm">Ver todos</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-danger">
-        <div class="card-body">
-          <h5 class="card-title">Alertas de la Semana</h5>
-          {% if weekly_alerts %}
-            <ul class="list-group list-group-flush">
-              {% for item in weekly_alerts %}
-                <li class="list-group-item d-flex justify-content-between">
-                  {{ item.status }} <span class="badge bg-danger">{{ item.count }}</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted">No se han generado alertas esta semana.</p>
-          {% endif %}
+        <div class="col-md-3">
+            <div class="card text-white bg-warning shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Ventas</h5>
+                    <p class="card-text fs-3">{{ total_ventas }}</p>
+                    <a href="{% url 'dispositivos:venta_list' %}" class="btn btn-light btn-sm">Ver todas</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mediciones -->
-  <h4 class="mb-3">Últimas 10 Mediciones</h4>
-  {% if recent_measurements %}
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Fecha/Hora</th>
-          <th>Dispositivo</th>
-          <th>Valor</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for m in recent_measurements %}
-          <tr>
-            <td>{{ m.timestamp|date:"Y-m-d H:i" }}</td>
-            <td>{{ m.device.name }}</td>
-            <td>{{ m.consumption_w }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="text-muted">No hay mediciones recientes para los filtros seleccionados.</p>
-  {% endif %}
-
-  <!-- Alertas -->
-  <h4 class="mb-3">Alertas Recientes</h4>
-  {% if recent_alerts %}
-    <div class="list-group mb-4">
-      {% for alert in recent_alerts %}
-        <div class="list-group-item">
-          <strong>{{ alert.measurement.device.name }}</strong>: {{ alert.message }}
-          <span class="badge bg-warning text-dark ms-2">{{ alert.reviewed|yesno:"Revisada,Pendiente" }}</span>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Usuarios</h5>
+                    <p class="card-text fs-3">{{ total_usuarios }}</p>
+                    <a href="{% url 'dispositivos:usuario_list' %}" class="btn btn-light btn-sm">Ver todos</a>
+                </div>
+            </div>
         </div>
-      {% endfor %}
     </div>
-  {% else %}
-    <p class="text-muted">No se han generado alertas recientemente.</p>
-  {% endif %}
-
-  <!-- Dispositivos -->
-  <h4 class="mb-3">Dispositivos</h4>
-  {% if devices %}
-    <table class="table table-bordered">
-      <thead class="table-light">
-        <tr>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Zona</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for device in devices %}
-          <tr>
-            <td>{{ device.name }}</td>
-            <td>{{ device.category.name }}</td>
-            <td>{{ device.zone.name }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="text-muted">No hay dispositivos que coincidan con los filtros seleccionados.</p>
-  {% endif %}
-  {% endblock %}
+</div>
+{% endblock %}

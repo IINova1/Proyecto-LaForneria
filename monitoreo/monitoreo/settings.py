@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dispositivos',  # app
+    'dispositivos',  # Tu app
 ]
 
 MIDDLEWARE = [
@@ -84,6 +84,7 @@ DATABASES = {
         "PORT": "3306",           # Puerto por defecto
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

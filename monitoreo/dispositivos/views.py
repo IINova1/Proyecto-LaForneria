@@ -149,6 +149,7 @@ def usuario_list(request):
     usuarios = Usuario.objects.all()
     return render(request, 'dispositivos/usuario_list.html', {'usuarios': usuarios})
 
+# --- CRUD de Usuarios ---
 @login_required
 def usuario_create(request):
     if not request.user.is_staff:

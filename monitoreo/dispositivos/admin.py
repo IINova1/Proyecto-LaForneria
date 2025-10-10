@@ -1,6 +1,8 @@
 import csv
 from django.http import HttpResponse
 from django.contrib import admin
+# Se importa el formulario personalizado que contiene la validación
+from .forms import ProductoForm
 from .models import (
     Usuario, Categoria, Producto, Cliente, Venta, DetalleVenta,
     Rol, Direccion, Nutricional, ReglaAlertaVencimiento, ProductoReglaAlerta,
@@ -31,7 +33,7 @@ def exportar_ventas_csv(modeladmin, request, queryset):
     response['Content-Disposition'] = 'attachment; filename="ventas.csv"'
     writer = csv.writer(response)
     writer.writerow(['ID Venta', 'Usuario Email', 'Usuario Nombre', 'Estado', 'Cliente ID', 'Num detalles', 'Fecha'])
-    
+
     qs = queryset.select_related('Usuarios', 'clientes_idclientes')
     for venta in qs:
         usuario_email = getattr(venta.Usuarios, 'email', '')
@@ -58,9 +60,12 @@ class CategoriaAdmin(admin.ModelAdmin):
     ordering = ('nombre',)
     def has_module_permission(self, request): return request.user.is_superuser
 
-# --- Admin para Producto ---
+# --- Admin para Producto (CORREGIDO) ---
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
+    # Esta línea activa tu formulario con la validación de stock
+    form = ProductoForm
+
     list_display = ('nombre', 'marca', 'precio', 'stock_actual', 'caducidad', 'Categorias')
     search_fields = ('nombre', 'marca')
     list_filter = ('Categorias',)

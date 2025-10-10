@@ -56,28 +56,45 @@ class CustomLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'current-password'}),
     )
 
-# --- FORMULARIO DE PRODUCTO SIMPLIFICADO ---
+# --- FORMULARIO DE PRODUCTO CON VALIDACIÓN ---
+# --- FORMULARIO DE PRODUCTO CON VALIDACIÓN ---
 class ProductoForm(forms.ModelForm):
     """
-    Un formulario de producto más limpio que solo pide los datos necesarios.
+    Un formulario de producto que ahora incluye validaciones de negocio para el stock.
     """
     class Meta:
         model = Producto
-        # Seleccionamos solo los campos que el usuario debe ingresar manualmente
         fields = [
             'nombre', 'descripcion', 'marca', 'precio', 'caducidad', 
             'elaboracion', 'tipo', 'Categorias', 'stock_actual', 
             'stock_minimo', 'stock_maximo', 'presentacion', 'formato',
             'Nutricional' 
         ]
-        # Hacemos que los campos de fecha usen un widget de calendario amigable
         widgets = {
             'caducidad': forms.DateInput(attrs={'type': 'date'}),
             'elaboracion': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        stock_minimo = cleaned_data.get("stock_minimo")
+        stock_maximo = cleaned_data.get("stock_maximo")
+        stock_actual = cleaned_data.get("stock_actual")
 
-
+        if stock_minimo is not None and stock_maximo is not None:
+            if stock_minimo >= stock_maximo:
+                raise forms.ValidationError(
+                    "Error de lógica: El stock mínimo no puede ser mayor o igual al stock máximo."
+                )
+        
+        if stock_actual is not None and stock_minimo is not None and stock_maximo is not None:
+            if not (stock_minimo <= stock_actual <= stock_maximo):
+                 raise forms.ValidationError(
+                    "Error de consistencia: El stock actual debe estar entre los valores de stock mínimo y máximo."
+                )
+                
+        return cleaned_data
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria

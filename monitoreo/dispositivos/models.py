@@ -1,84 +1,192 @@
 from django.db import models
-from django.utils import timezone
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.utils.translation import gettext_lazy as _
 
-# Base model with common attributes
-class BaseModel(models.Model):
-    STATUS_CHOICES = [
-        ("ACTIVO", "Activo"),
-        ("INACTIVO", "Inactivo"),
-    ]
+# --- Manejador de Usuario ---
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError(_('El email es obligatorio'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="ACTIVO")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser debe tener is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser debe tener is_superuser=True.'))
+        return self.create_user(email, password, **extra_fields)
+
+# --- Modelo Usuario ---
+class Usuario(AbstractUser):
+    username = None
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(_('email address'), unique=True)
+    materno = models.CharField(max_length=100, blank=True, null=True)
+    run = models.CharField(unique=True, max_length=10)
+    fono = models.IntegerField(blank=True, null=True)
+    Direccion = models.ForeignKey('Direccion', on_delete=models.DO_NOTHING, null=True, blank=True)
+    Roles = models.ForeignKey('Rol', on_delete=models.DO_NOTHING, null=True, blank=True)
+    objects = CustomUserManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'run']
 
     class Meta:
-        abstract = True
-
-# Modelo Organización (ya no depende de Zona)
-class Organization(BaseModel):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
+        managed = False
+        db_table = 'Usuarios'
 
     def __str__(self):
-        return self.name
+        return self.email
 
-# Modelo Zona (debe ir antes si Organization depende de ella)
-class Zone(BaseModel):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True, help_text="Zone description.")
-    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, related_name='zones')
-
+# --- Modelos ---
+class Categoria(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=100, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'Categorias'
     def __str__(self):
-        return self.name
+        return self.nombre
 
-# Modelo de usuario personalizado
-class CustomUser(AbstractUser):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
-
+class Nutricional(models.Model):
+    ingredientes = models.CharField(max_length=300, blank=True, null=True)
+    tiempo_preparacion = models.CharField(max_length=100, blank=True, null=True)
+    proteinas = models.CharField(max_length=45, blank=True, null=True)
+    azucar = models.CharField(max_length=45, blank=True, null=True)
+    gluten = models.CharField(max_length=45, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'Nutricional'
     def __str__(self):
-        return f"{self.username} ({self.organization.name})" if self.organization else self.username
+        return f"ingredientes {self.id}"
 
-# Modelo Categoría
-class Category(BaseModel):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-
+class Producto(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=300, blank=True, null=True)
+    marca = models.CharField(max_length=100, blank=True, null=True)
+    precio = models.IntegerField(blank=True, null=True)
+    caducidad = models.DateField()
+    elaboracion = models.DateField(blank=True, null=True)
+    tipo = models.CharField(max_length=100)
+    Categorias = models.ForeignKey(Categoria, on_delete=models.DO_NOTHING, db_column='Categorias_id')
+    stock_actual = models.IntegerField(blank=True, null=True)
+    stock_minimo = models.IntegerField(blank=True, null=True)
+    stock_maximo = models.IntegerField(blank=True, null=True)
+    presentacion = models.CharField(max_length=100, blank=True, null=True)
+    formato = models.CharField(max_length=100, blank=True, null=True)
+    Nutricional = models.ForeignKey(Nutricional, on_delete=models.DO_NOTHING, db_column='Nutricional_id')
+    creado = models.DateTimeField(blank=True, null=True)
+    modificado = models.DateTimeField(blank=True, null=True)
+    eliminado = models.DateTimeField(blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'Productos'
     def __str__(self):
-        return self.name
+        return self.nombre
 
-# Modelo Dispositivo
-class Device(BaseModel):
-    name = models.CharField(max_length=100)
-    max_consumption = models.IntegerField(help_text="Maximum consumption in watts")
-    zone = models.ForeignKey(Zone, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    imagen = models.ImageField(upload_to='dispositivos/', null=True, blank=True)
+class Direccion(models.Model):
+    calle = models.CharField(max_length=100)
+    numero = models.CharField(max_length=10)
+    depto = models.CharField(max_length=10, blank=True, null=True)
+    comuna = models.CharField(max_length=100)
+    region = models.CharField(max_length=100)
+    codigo_postal = models.CharField(max_length=45, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'Direccion'
 
+class Rol(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=200, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'Roles'
     def __str__(self):
-        return self.name
+        return self.nombre
 
-# Modelo Medición
-class Measurement(BaseModel):
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
-    consumption_w = models.FloatField()
-    timestamp = models.DateTimeField(default=timezone.now)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+class Cliente(models.Model):
+    idclientes = models.IntegerField(primary_key=True)
+    class Meta:
+        managed = False
+        db_table = 'clientes'
 
+class Venta(models.Model):
+    idventa = models.IntegerField(primary_key=True, db_column='idventa')
+    Usuarios = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='Usuarios_id')
+    EstadoPedido = models.CharField(max_length=45, blank=True, null=True)
+    clientes_idclientes = models.ForeignKey(Cliente, on_delete=models.DO_NOTHING, db_column='clientes_idclientes')
+    class Meta:
+        managed = False
+        db_table = 'venta'
+
+class Lote(models.Model):
+    idLote = models.IntegerField(primary_key=True)
+    Productos = models.ForeignKey(Producto, on_delete=models.DO_NOTHING, db_column='Productos_id')
+    class Meta:
+        managed = False
+        db_table = 'Lote'
+
+class DetalleVenta(models.Model):
+    id = models.IntegerField(primary_key=True)
+    venta_idventa = models.ForeignKey(Venta, on_delete=models.DO_NOTHING, db_column='venta_idventa')
+    Lote_idLote = models.ForeignKey(Lote, on_delete=models.DO_NOTHING, db_column='Lote_idLote')
+    Lote_Productos_id = models.IntegerField()
+    class Meta:
+        managed = False
+        db_table = 'Detalle venta'
+
+class ReglaAlertaVencimiento(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.CharField(max_length=255, blank=True, null=True)
+    dias_anticipacion = models.IntegerField()
     def __str__(self):
-        return f"Measurement of {self.device.name} - {self.consumption_w}W"
+        return self.nombre
 
-# Modelo Alerta
-class Alert(BaseModel):
-    measurement = models.OneToOneField(Measurement, on_delete=models.CASCADE)
-    message = models.CharField(max_length=255)
-    timestamp = models.DateTimeField(default=timezone.now)
-    reviewed = models.BooleanField(default=False, help_text="Indicates if the alert has been reviewed.")
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-
+class ProductoReglaAlerta(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    regla = models.ForeignKey(ReglaAlertaVencimiento, on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('producto', 'regla')
     def __str__(self):
-        return f"Alert for {self.measurement.device.name}"
+        return f"{self.producto.nombre} - {self.regla.nombre}"
+
+class Pedido(models.Model):
+    ESTADO_CHOICES = [
+        ('Pendiente', 'Pendiente'),
+        ('En preparación', 'En preparación'),
+        ('Enviado', 'Enviado'),
+        ('Completado', 'Completado'),
+        ('Cancelado', 'Cancelado'),
+    ]
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    fecha_pedido = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Pendiente')
+    def __str__(self):
+        return f"Pedido {self.id} de {self.usuario.email}"
+
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(Pedido, related_name='detalles', on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre}"
+
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    mensaje = models.CharField(max_length=255)
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, null=True, blank=True)
+    def __str__(self):
+        return self.mensaje
+    class Meta:
+        ordering = ['-fecha_creacion']

@@ -1,0 +1,142 @@
+[
+  {
+    "model": "dispositivos.categoria",
+    "pk": 21,
+    "fields": { "nombre": "Panadería", "descripcion": "Pan fresco, artesanal y de masa madre." }
+  },
+  {
+    "model": "dispositivos.categoria",
+    "pk": 22,
+    "fields": { "nombre": "Pastelería", "descripcion": "Pasteles, postres y bocadillos dulces." }
+  },
+  {
+    "model": "dispositivos.categoria",
+    "pk": 23,
+    "fields": { "nombre": "Cafetería y Bebidas", "descripcion": "Café de grano, tés, jugos y más." }
+  },
+  {
+    "model": "dispositivos.categoria",
+    "pk": 24,
+    "fields": { "nombre": "Bocadillos y Salados", "descripcion": "Empanadas, sándwiches y otras delicias saladas." }
+  },
+  {
+    "model": "dispositivos.categoria",
+    "pk": 25,
+    "fields": { "nombre": "Especiales de Temporada", "descripcion": "Productos exclusivos por tiempo limitado." }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 31,
+    "fields": { "nombre": "Pan Baguette", "descripcion": "Pan de corteza crujiente e interior suave.", "marca": "La Fornería", "precio": 1500, "caducidad": "2025-10-05", "elaboracion": "2025-10-03", "tipo": "Artesanal", "Categorias": 21, "stock_actual": 50, "stock_minimo": 10, "stock_maximo": 100, "Nutricional": 11 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 32,
+    "fields": { "nombre": "Croissant de Mantequilla", "descripcion": "Clásico croissant francés, laminado a la perfección.", "marca": "La Fornería", "precio": 1200, "caducidad": "2025-10-06", "elaboracion": "2025-10-04", "tipo": "Hojaldre", "Categorias": 22, "stock_actual": 30, "stock_minimo": 5, "stock_maximo": 60, "Nutricional": 12 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 33,
+    "fields": { "nombre": "Torta de Chocolate Belga", "descripcion": "Torta intensa de chocolate belga con triple capa.", "marca": "Pastelería Fina", "precio": 15000, "caducidad": "2025-10-10", "elaboracion": "2025-10-03", "tipo": "Postre", "Categorias": 22, "stock_actual": 10, "stock_minimo": 2, "stock_maximo": 15, "Nutricional": 13 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 34,
+    "fields": { "nombre": "Pan Multigrano", "descripcion": "Saludable pan con mezcla de 5 semillas.", "marca": "La Fornería", "precio": 2500, "caducidad": "2025-10-08", "elaboracion": "2025-10-03", "tipo": "Integral", "Categorias": 21, "stock_actual": 40, "stock_minimo": 10, "stock_maximo": 80, "Nutricional": 14 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 35,
+    "fields": { "nombre": "Hogaza de Masa Madre", "descripcion": "Pan rústico de larga fermentación y gran sabor.", "marca": "La Fornería", "precio": 3500, "caducidad": "2025-10-09", "elaboracion": "2025-10-02", "tipo": "Masa Madre", "Categorias": 21, "stock_actual": 20, "stock_minimo": 5, "stock_maximo": 40, "Nutricional": 15 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 36,
+    "fields": { "nombre": "Kuchen de Manzana", "descripcion": "Tradicional pastel de manzana y canela.", "marca": "Pastelería Fina", "precio": 8000, "caducidad": "2025-10-08", "elaboracion": "2025-10-03", "tipo": "Dulce", "Categorias": 22, "stock_actual": 15, "stock_minimo": 3, "stock_maximo": 25, "Nutricional": 16 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 37,
+    "fields": { "nombre": "Cheesecake de Frambuesa", "descripcion": "Suave cheesecake con mermelada de frambuesa casera.", "marca": "Pastelería Fina", "precio": 12000, "caducidad": "2025-10-09", "elaboracion": "2025-10-03", "tipo": "Postre Frío", "Categorias": 22, "stock_actual": 12, "stock_minimo": 2, "stock_maximo": 20, "Nutricional": 17 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 38,
+    "fields": { "nombre": "Café Americano", "descripcion": "Espresso doble diluido en agua caliente.", "marca": "Café del Bueno", "precio": 1800, "caducidad": "2026-01-01", "elaboracion": "2025-10-04", "tipo": "Bebida", "Categorias": 23, "stock_actual": 100, "stock_minimo": 20, "stock_maximo": 200, "Nutricional": 18 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 39,
+    "fields": { "nombre": "Capuccino Italiano", "descripcion": "El balance perfecto entre café, leche y espuma.", "marca": "Café del Bueno", "precio": 2200, "caducidad": "2026-01-01", "elaboracion": "2025-10-04", "tipo": "Bebida", "Categorias": 23, "stock_actual": 100, "stock_minimo": 20, "stock_maximo": 200, "Nutricional": 19 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 40,
+    "fields": { "nombre": "Té Chai Latte", "descripcion": "Té negro especiado con leche vaporizada.", "marca": "Infusiones del Mundo", "precio": 2500, "caducidad": "2026-01-01", "elaboracion": "2025-10-04", "tipo": "Bebida", "Categorias": 23, "stock_actual": 80, "stock_minimo": 15, "stock_maximo": 150, "Nutricional": 20 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 41,
+    "fields": { "nombre": "Jugo de Naranja Natural", "descripcion": "Jugo recién exprimido, 100% natural.", "marca": "La Fornería", "precio": 2000, "caducidad": "2025-10-05", "elaboracion": "2025-10-04", "tipo": "Bebida Fría", "Categorias": 23, "stock_actual": 50, "stock_minimo": 10, "stock_maximo": 100, "Nutricional": 21 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 42,
+    "fields": { "nombre": "Sándwich Pavo-Queso", "descripcion": "En pan de molde integral con lechuga y tomate.", "marca": "La Fornería", "precio": 4500, "caducidad": "2025-10-06", "elaboracion": "2025-10-04", "tipo": "Salado", "Categorias": 24, "stock_actual": 25, "stock_minimo": 5, "stock_maximo": 50, "Nutricional": 22 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 43,
+    "fields": { "nombre": "Triángulo de Espinaca-Ricota", "descripcion": "Delicioso bocadillo de hojaldre relleno.", "marca": "La Fornería", "precio": 1800, "caducidad": "2025-10-06", "elaboracion": "2025-10-04", "tipo": "Salado", "Categorias": 24, "stock_actual": 30, "stock_minimo": 10, "stock_maximo": 60, "Nutricional": 23 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 44,
+    "fields": { "nombre": "Empanada de Pino", "descripcion": "Clásica empanada chilena horneada.", "marca": "Sabores Criollos", "precio": 2200, "caducidad": "2025-10-06", "elaboracion": "2025-10-04", "tipo": "Salado", "Categorias": 24, "stock_actual": 40, "stock_minimo": 10, "stock_maximo": 80, "Nutricional": 24 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 45,
+    "fields": { "nombre": "Calzones Rotos (Porción)", "descripcion": "Dulce tradicional de invierno, frito y esponjoso.", "marca": "La Fornería", "precio": 2500, "caducidad": "2025-10-06", "elaboracion": "2025-10-04", "tipo": "Fritura Dulce", "Categorias": 25, "stock_actual": 20, "stock_minimo": 5, "stock_maximo": 40, "Nutricional": 25 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 46,
+    "fields": { "nombre": "Pan de Pascua", "descripcion": "Exclusivo de Navidad, con frutos secos y fruta confitada.", "marca": "La Fornería", "precio": 7900, "caducidad": "2025-12-30", "elaboracion": "2025-10-01", "tipo": "Dulce Navideño", "Categorias": 25, "stock_actual": 50, "stock_minimo": 0, "stock_maximo": 100, "Nutricional": 26 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 47,
+    "fields": { "nombre": "Barra de Granola Casera", "descripcion": "Snack saludable con avena, miel y frutos secos.", "marca": "La Fornería", "precio": 1500, "caducidad": "2025-11-15", "elaboracion": "2025-10-02", "tipo": "Snack", "Categorias": 22, "stock_actual": 60, "stock_minimo": 15, "stock_maximo": 120, "Nutricional": 27 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 48,
+    "fields": { "nombre": "Macarons (Caja de 6)", "descripcion": "Finos dulces franceses de distintos sabores.", "marca": "Pastelería Fina", "precio": 6000, "caducidad": "2025-10-10", "elaboracion": "2025-10-03", "tipo": "Dulce Fino", "Categorias": 22, "stock_actual": 20, "stock_minimo": 5, "stock_maximo": 30, "Nutricional": 28 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 49,
+    "fields": { "nombre": "Trufas de Chocolate", "descripcion": "Bocadillos intensos de chocolate negro.", "marca": "Pastelería Fina", "precio": 800, "caducidad": "2025-10-20", "elaboracion": "2025-10-03", "tipo": "Chocolatería", "Categorias": 22, "stock_actual": 50, "stock_minimo": 10, "stock_maximo": 100, "Nutricional": 29 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 50,
+    "fields": { "nombre": "Leche Asada", "descripcion": "Postre casero tradicional con caramelo.", "marca": "La Fornería", "precio": 2000, "caducidad": "2025-10-08", "elaboracion": "2025-10-03", "tipo": "Postre", "Categorias": 22, "stock_actual": 25, "stock_minimo": 5, "stock_maximo": 40, "Nutricional": 30 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 51,
+    "fields": { "nombre": "Chipa (Porción de 3)", "descripcion": "Panecillos de queso y almidón de yuca.", "marca": "Sabores Criollos", "precio": 1800, "caducidad": "2025-10-05", "elaboracion": "2025-10-04", "tipo": "Salado Sin Gluten", "Categorias": 24, "stock_actual": 30, "stock_minimo": 10, "stock_maximo": 50, "Nutricional": 31 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 52,
+    "fields": { "nombre": "Agua con Gas y Limón", "descripcion": "Bebida refrescante y sin azúcar.", "marca": "Aguas del Sur", "precio": 1500, "caducidad": "2026-06-01", "elaboracion": "2025-01-01", "tipo": "Bebida Fría", "Categorias": 23, "stock_actual": 100, "stock_minimo": 20, "stock_maximo": 200, "Nutricional": 32 }
+  },
+  {
+    "model": "dispositivos.producto",
+    "pk": 53,
+    "fields": { "nombre": "Focaccia de Aceitunas", "descripcion": "Pan plano italiano con aceitunas y romero.", "marca": "La Fornería", "precio": 2800, "caducidad": "2025-10-06", "elaboracion": "2025-10-03", "tipo": "Artesanal", "Categorias": 21, "stock_actual": 20, "stock_minimo": 5, "stock_maximo": 35, "Nutricional": 33 }
+  }
+]

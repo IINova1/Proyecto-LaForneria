@@ -1,48 +1,111 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import Device, Organization, CustomUser, Zone
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import Usuario, Producto, Categoria, Cliente, Venta, Direccion, Rol
+from django.db import transaction
 
-class DispositivoForm(forms.ModelForm):
-    class Meta:
-        model = Device
-        fields = ['name', 'category', 'max_consumption', 'zone', 'status', 'organization', 'imagen']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'max_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
-            'zone': forms.Select(attrs={'class': 'form-select'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(choices=[("ACTIVO", 'Activo'), ("INACTIVO", 'Inactivo')], attrs={'class': 'form-select'}),
-            'organization': forms.Select(attrs={'class': 'form-select'}),
-            'imagen': forms.FileInput(attrs={'class': 'form-control'})
-        }
-
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if len(name) < 3:
-            raise forms.ValidationError("El nombre debe tener al menos 3 caracteres")
-        return name
-
+# --- FORMULARIO DE REGISTRO PERSONALIZADO ---
 class CustomRegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    organization_name = forms.CharField(label='Organization Name')
+    """
+    Formulario para que los usuarios se registren.
+    Incluye campos para la dirección y asigna un rol de "Cliente" por defecto.
+    """
+    calle = forms.CharField(max_length=100, label="Calle", help_text="Nombre de la calle.")
+    numero = forms.CharField(max_length=10, label="Número")
+    depto = forms.CharField(max_length=10, required=False, label="Departamento (opcional)")
+    comuna = forms.CharField(max_length=100, label="Comuna")
+    region = forms.CharField(max_length=100, label="Región")
+    codigo_postal = forms.CharField(max_length=45, required=False, label="Código Postal (opcional)")
 
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password1', 'password2', 'organization_name']
+    class Meta(UserCreationForm.Meta):
+        model = Usuario
+        fields = ('first_name', 'last_name', 'email', 'materno', 'run', 'fono')
 
+    @transaction.atomic
     def save(self, commit=True):
         user = super().save(commit=False)
-        org_name = self.cleaned_data['organization_name']
-
-        # Asignar zona por defecto
-        default_zone = Zone.objects.first()
-        if not default_zone:
-            raise forms.ValidationError("No hay zonas disponibles para asignar a la organización.")
-
-        organization, created = Organization.objects.get_or_create(name=org_name, defaults={'zone': default_zone})
-        user.organization = organization
-
+        direccion = Direccion.objects.create(
+            calle=self.cleaned_data.get('calle'),
+            numero=self.cleaned_data.get('numero'),
+            depto=self.cleaned_data.get('depto'),
+            comuna=self.cleaned_data.get('comuna'),
+            region=self.cleaned_data.get('region'),
+            codigo_postal=self.cleaned_data.get('codigo_postal')
+        )
+        user.Direccion = direccion
+        try:
+            cliente_rol = Rol.objects.get(nombre='Cliente')
+            user.Roles = cliente_rol
+        except Rol.DoesNotExist:
+            pass
         if commit:
-            organization.save()
             user.save()
         return user
+
+# --- FORMULARIO DE LOGIN PERSONALIZADO ---
+class CustomLoginForm(AuthenticationForm):
+    """
+    Formulario de login personalizado que usa email en lugar de username.
+    """
+    username = forms.EmailField(
+        label="Correo Electrónico",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'autofocus': True})
+    )
+    password = forms.CharField(
+        label="Contraseña",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'current-password'}),
+    )
+
+# --- FORMULARIO DE PRODUCTO CON VALIDACIÓN ---
+# --- FORMULARIO DE PRODUCTO CON VALIDACIÓN ---
+class ProductoForm(forms.ModelForm):
+    """
+    Un formulario de producto que ahora incluye validaciones de negocio para el stock.
+    """
+    class Meta:
+        model = Producto
+        fields = [
+            'nombre', 'descripcion', 'marca', 'precio', 'caducidad', 
+            'elaboracion', 'tipo', 'Categorias', 'stock_actual', 
+            'stock_minimo', 'stock_maximo', 'presentacion', 'formato',
+            'Nutricional' 
+        ]
+        widgets = {
+            'caducidad': forms.DateInput(attrs={'type': 'date'}),
+            'elaboracion': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        stock_minimo = cleaned_data.get("stock_minimo")
+        stock_maximo = cleaned_data.get("stock_maximo")
+        stock_actual = cleaned_data.get("stock_actual")
+
+        if stock_minimo is not None and stock_maximo is not None:
+            if stock_minimo >= stock_maximo:
+                raise forms.ValidationError(
+                    "Error de lógica: El stock mínimo no puede ser mayor o igual al stock máximo."
+                )
+        
+        if stock_actual is not None and stock_minimo is not None and stock_maximo is not None:
+            if not (stock_minimo <= stock_actual <= stock_maximo):
+                 raise forms.ValidationError(
+                    "Error de consistencia: El stock actual debe estar entre los valores de stock mínimo y máximo."
+                )
+                
+        return cleaned_data
+class CategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = '__all__'
+
+class VentaForm(forms.ModelForm):
+    class Meta:
+        model = Venta
+        fields = '__all__'

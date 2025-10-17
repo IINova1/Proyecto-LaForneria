@@ -12,6 +12,7 @@ from .forms import (
 from .models import Usuario, Categoria, Producto, Cliente
 from datetime import date, timedelta
 from django.utils import timezone
+from django.contrib import messages
 
 # --------------------
 # Vistas Públicas (Para todos)
@@ -21,7 +22,13 @@ def inicio(request):
     """
     Vista para la página de inicio pública.
     """
-    return render(request, 'dispositivos/inicio.html')
+    visitas = request.session.get('visitas', 0)
+    request.session['visitas'] = visitas + 1
+    context = {
+        'visitas': request.session.get('visitas') # Pasamos el valor actualizado
+    }
+    return render(request, 'dispositivos/inicio.html', context)
+
 
 def register(request):
     """
@@ -50,13 +57,22 @@ def agregar_al_carrito(request, pk):
     Añade un producto al carrito de compras, que se guarda en la sesión.
     """
     producto = get_object_or_404(Producto, pk=pk)
-    cantidad = int(request.POST.get('cantidad', 1))
+    try:
+        cantidad = int(request.POST.get('cantidad', 1))
+    except (TypeError, ValueError):
+        cantidad = 1
     carrito = request.session.get('carrito', {})
+    
     if str(pk) in carrito:
         carrito[str(pk)] += cantidad
     else:
         carrito[str(pk)] = cantidad
+    
     request.session['carrito'] = carrito
+    
+    # ¡Añadimos el mensaje flash!
+    messages.success(request, f'¡Producto "{producto.nombre}" agregado al carrito!')
+    
     return redirect('dispositivos:ver_carrito')
 
 def ver_carrito(request):

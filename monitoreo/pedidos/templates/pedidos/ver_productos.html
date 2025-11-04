@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Nuestros Productos{% endblock %}
+{% block content %}
+
+<style>
+    /* --- Estilos personalizados --- */
+    .productos-header {
+        background: linear-gradient(135deg, #ffb347, #ffcc33);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .productos-header h1 {
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .card.producto-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .card.producto-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .producto-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .form-busqueda {
+        background-color: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #00b4d8);
+        border: none;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #0096c7);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #70e000);
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #218838, #5cb85c);
+    }
+
+    .pagination .page-link {
+        border-radius: 0.5rem;
+        color: #007bff;
+    }
+
+    .pagination .active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+
+    <!-- Encabezado atractivo -->
+    <div class="productos-header">
+        <h1>Nuestros Productos</h1>
+        <p class="lead mb-0">Descubre nuestras delicias y encuentra tu favorito 🍰☕</p>
+    </div>
+
+    <!-- Formulario de búsqueda y filtros -->
+    <div class="form-busqueda mb-4">
+        <form method="GET" action="{% url 'pedidos:ver_productos' %}" class="row g-3 align-items-end">
+            
+            <div class="col-md-6">
+                <label for="q" class="form-label fw-bold">Buscar Producto</label>
+                <input type="text" class="form-control" id="q" name="q" 
+                       placeholder="Ej: Croissant, Torta de Chocolate..." 
+                       value="{{ current_q|default:'' }}">
+            </div>
+
+            <div class="col-md-4">
+                <label for="sort" class="form-label fw-bold">Ordenar por</label>
+                <select id="sort" name="sort" class="form-select">
+                    <option value="alpha_asc" {% if current_sort == 'alpha_asc' %}selected{% endif %}>Nombre (A-Z)</option>
+                    <option value="alpha_desc" {% if current_sort == 'alpha_desc' %}selected{% endif %}>Nombre (Z-A)</option>
+                    <option value="precio_asc" {% if current_sort == 'precio_asc' %}selected{% endif %}>Precio (Menor a Mayor)</option>
+                    <option value="precio_desc" {% if current_sort == 'precio_desc' %}selected{% endif %}>Precio (Mayor a Menor)</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Grid de productos -->
+    <div class="row">
+        {% for producto in page_obj %}
+        <div class="col-md-4 mb-4">
+            <div class="card producto-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary fw-bold">{{ producto.nombre }}</h5>
+                    <p class="card-text text-muted">{{ producto.descripcion|truncatewords:20 }}</p>
+                    <p class="card-text fs-5 mt-auto"><strong>💲{{ producto.precio|floatformat:0 }}</strong></p>
+                    
+                    <form action="{% url 'pedidos:agregar_al_carrito' producto.id %}" method="post" class="mt-3">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="number" name="cantidad" value="1" min="1" max="{{ producto.stock_actual }}" class="form-control" style="max-width: 80px;">
+                            <button type="submit" class="btn btn-success">Agregar al 🛒</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center py-4 rounded-3 shadow-sm" role="alert">
+                    😕 No se encontraron productos que coincidan con tu búsqueda.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Navegación de productos" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}" aria-label="Previous">&laquo;</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}" aria-label="Next">&raquo;</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}

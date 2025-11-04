@@ -28,6 +28,9 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# ----------------------------------------------------------------------
+# --- INSTALLED_APPS CORREGIDO ---
+# ----------------------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,7 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dispositivos',  # app
+    
+    # --- TUS NUEVAS APPS ---
+    # Es mejor usar la ruta completa de AppConfig para evitar conflictos
+    'core.apps.CoreConfig',
+    'usuarios.apps.UsuariosConfig',
+    'catalogo.apps.CatalogoConfig',
+    'pedidos.apps.PedidosConfig',
+    
+    # 'dispositivos',  <-- Esta línea se elimina
 ]
 
 MIDDLEWARE = [
@@ -53,9 +64,9 @@ ROOT_URLCONF = 'monitoreo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Apunta a la carpeta 'templates' en la raíz del proyecto
+        # Apunta a la carpeta 'templates' en la raíz del proyecto (para base.html)
         'DIRS': [BASE_DIR.parent / 'templates'],
-        'APP_DIRS': True,
+        'APP_DIRS': True, # Esto permite que Django encuentre templates dentro de cada app
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -134,19 +145,23 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ----------------------------------------------------------------------
-# Configuraciones para Autenticación y Autorización
+# --- Configuraciones de Autenticación CORREGIDAS ---
 # ----------------------------------------------------------------------
-AUTH_USER_MODEL = 'dispositivos.Usuario'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
-LOGIN_URL = '/login/'
+# --- AUTH_USER_MODEL CORREGIDO ---
+AUTH_USER_MODEL = 'usuarios.Usuario' # Ahora apunta a la app 'usuarios'
+
+# --- URLs CORREGIDAS ---
+# Usamos los nombres de las rutas (namespaces) para más seguridad
+LOGIN_REDIRECT_URL = 'core:dashboard'
+LOGOUT_REDIRECT_URL = 'usuarios:login'
+LOGIN_URL = 'usuarios:login'
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 # ----------------------------------------------------------------------
-# Configuraciones de Mensajes (message framework) - NUEVO
+# Configuraciones de Mensajes (message framework)
 # ----------------------------------------------------------------------
-# Mapea los tags de mensajes de Django a las clases de alerta de Bootstrap 5
 MESSAGE_TAGS = {
     msg.DEBUG: 'secondary',
     msg.INFO: 'info',
@@ -156,19 +171,10 @@ MESSAGE_TAGS = {
 }
 
 # ----------------------------------------------------------------------
-# Configuraciones de Sesión (Basado en U2 - C6) - NUEVO
+# Configuraciones de Sesión
 # ----------------------------------------------------------------------
-# Duración de 2 horas (en segundos)
 SESSION_COOKIE_AGE = 60 * 60 * 2 
-
-# La sesión NO expira al cerrar el navegador
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-
-# No guardar la sesión en cada petición (mejora rendimiento)
 SESSION_SAVE_EVERY_REQUEST = False
-
-# En producción (cuando tengas HTTPS), cambia esto a True
 SESSION_COOKIE_SECURE = False 
-
-# Protección CSRF (Lax es un buen default)
 SESSION_COOKIE_SAMESITE = 'Lax'

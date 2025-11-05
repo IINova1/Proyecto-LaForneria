@@ -3,11 +3,11 @@ from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
 
 # --- ¡IMPORTACIONES CORREGIDAS! ---
-# Importamos los modelos desde sus NUEVAS apps
-# (Estos son necesarios para las estadísticas del dashboard)
 from usuarios.models import Usuario
 from catalogo.models import Producto
-from pedidos.models import Pedido, Cliente
+# ¡Pedido y Cliente ya estaban importados!
+from pedidos.models import Pedido, Cliente 
+from proveedores.models import Proveedor
 
 # --------------------
 # Vistas Públicas (Para todos)
@@ -22,7 +22,6 @@ def inicio(request):
     context = {
         'visitas': request.session.get('visitas') # Pasamos el valor actualizado
     }
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'core/inicio.html', context)
 
 
@@ -36,8 +35,6 @@ def dashboard(request):
     Vista para el panel de administración.
     """
     if not request.user.is_staff:
-        # --- REDIRECCIÓN CORREGIDA ---
-        # Si no es admin, lo mandamos a la tienda (en la app 'pedidos')
         return redirect('pedidos:ver_productos')
     
     # Consultamos los modelos de sus apps correspondientes
@@ -45,6 +42,11 @@ def dashboard(request):
     total_productos = Producto.objects.count()
     total_clientes = Cliente.objects.count()
     total_pedidos = Pedido.objects.count()
+    total_proveedores = Proveedor.objects.count()
+
+    # --- ¡LÓGICA MEJORADA! ---
+    # Esto es más intuitivo que el total de pedidos.
+    total_pedidos_pendientes = Pedido.objects.filter(estado='Pendiente').count()
     
     hoy = date.today()
     fecha_limite = hoy + timedelta(days=7)
@@ -58,11 +60,11 @@ def dashboard(request):
         'total_usuarios': total_usuarios,
         'total_productos': total_productos,
         'total_clientes': total_clientes,
-        'total_pedidos': total_pedidos,
+        'total_pedidos': total_pedidos, # Aún lo pasamos por si lo quieres usar
+        'total_proveedores': total_proveedores,
         'productos_a_vencer': productos_a_vencer,
-    }
-    # --- RUTA DE PLANTILLA CORREGIDA ---
-    return render(request, 'core/dashboard.html', context)
 
-# --- TODAS LAS OTRAS VISTAS (register, producto_list, ver_carrito, etc.) ---
-# --- SE ELIMINAN DE ESTE ARCHIVO ---
+        # --- ¡NUEVO CONTEXTO AÑADIDO! ---
+        'total_pedidos_pendientes': total_pedidos_pendientes,
+    }
+    return render(request, 'core/dashboard.html', context)

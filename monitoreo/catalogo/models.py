@@ -31,6 +31,10 @@ class Producto(models.Model):
     tipo = models.CharField(max_length=100)
     Categorias = models.ForeignKey(Categoria, on_delete=models.DO_NOTHING, db_column='Categorias_id')
     Nutricional = models.ForeignKey(Nutricional, on_delete=models.DO_NOTHING, db_column='Nutricional_id')
+    
+    # --- ¡CAMPO AÑADIDO! ---
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True, verbose_name='Imagen')
+    
     stock_actual = models.IntegerField(blank=True, null=True)
     stock_minimo = models.IntegerField(blank=True, null=True)
     stock_maximo = models.IntegerField(blank=True, null=True)

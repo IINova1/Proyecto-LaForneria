@@ -66,7 +66,8 @@ class UserProfileForm(forms.ModelForm):
     """
     class Meta:
         model = Usuario
-        fields = ('first_name', 'last_name', 'materno', 'fono', 'run')
+        # --- ¡CAMPO AÑADIDO AQUÍ! ---
+        fields = ('avatar', 'first_name', 'last_name', 'materno', 'fono', 'run')
         # Hacemos que 'run' sea de solo lectura si ya está establecido,
         # pero editable si no lo está.
         widgets = {
@@ -83,6 +84,20 @@ class UserProfileForm(forms.ModelForm):
         # El email no se debe cambiar desde aquí
         if 'email' in self.fields:
              self.fields['email'].disabled = True
+
+    # --- ¡VALIDACIÓN AÑADIDA! (Requisito de la evaluación) ---
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar', False)
+        if avatar:
+            # Validación de tamaño (ej. 2MB)
+            if avatar.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("¡La imagen es demasiado grande! (máximo 2MB)")
+            
+            # Validación de tipo (ej. solo jpg, png)
+            main, sub = avatar.content_type.split('/')
+            if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
+                raise forms.ValidationError("Tipo de archivo no válido. (Sube .jpg o .png)")
+        return avatar
 
 
 class DireccionForm(forms.ModelForm):

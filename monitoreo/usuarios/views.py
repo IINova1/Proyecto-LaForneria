@@ -47,8 +47,8 @@ def perfil(request):
         direccion = None
 
     if request.method == 'POST':
-        # Instancia ambos formularios con los datos del POST
-        user_form = UserProfileForm(request.POST, instance=usuario)
+        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
+        user_form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         direccion_form = DireccionForm(request.POST, instance=direccion)
         
         if user_form.is_valid() and direccion_form.is_valid():
@@ -122,7 +122,8 @@ def usuario_update(request, pk):
     
     # Los admins ahora usarán el UserProfileForm para editar
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=usuario)
+        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
+        form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario actualizado exitosamente.')

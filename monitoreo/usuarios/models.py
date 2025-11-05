@@ -50,6 +50,10 @@ class Usuario(AbstractUser):
     materno = models.CharField(max_length=100, blank=True, null=True)
     run = models.CharField(unique=True, max_length=10)
     fono = models.IntegerField(blank=True, null=True)
+    
+    # --- ¡CAMPO AÑADIDO AQUÍ! ---
+    avatar = models.ImageField(upload_to='avatares/', null=True, blank=True, verbose_name='Avatar')
+    
     Direccion = models.ForeignKey('Direccion', on_delete=models.DO_NOTHING, null=True, blank=True)
     Roles = models.ForeignKey('Rol', on_delete=models.DO_NOTHING, null=True, blank=True)
     objects = CustomUserManager()

@@ -10,7 +10,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # --- LÍNEAS CORREGIDAS ---
-    # Se añaden las rutas a las 4 nuevas apps
     
     # La app 'core' maneja la raíz ('') y el dashboard
     path('', include(('core.urls', 'core'), namespace='core')),
@@ -23,6 +22,9 @@ urlpatterns = [
     
     # La app 'pedidos' maneja la tienda (ej. /tienda, /carrito)
     path('', include(('pedidos.urls', 'pedidos'), namespace='pedidos')),
+
+    # --- ¡NUEVA LÍNEA AÑADIDA! ---
+    path('proveedores/', include(('proveedores.urls', 'proveedores'), namespace='proveedores')),
 ]
 
 # Configuración para servir archivos multimedia (imágenes) en modo de desarrollo

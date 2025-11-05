@@ -13,9 +13,10 @@ class ProductoForm(forms.ModelForm):
         model = Producto
         fields = [
             'nombre', 'descripcion', 'marca', 'precio', 'caducidad', 
-            'elaboracion', 'tipo', 'Categorias', 'stock_actual', 
-            'stock_minimo', 'stock_maximo', 'presentacion', 'formato',
-            'Nutricional' 
+            'elaboracion', 'tipo', 'Categorias', 
+            'stock_actual', 'stock_minimo', 'stock_maximo', 
+            'presentacion', 'formato', 'Nutricional',
+            'imagen'  # --- ¡CAMPO AÑADIDO AQUÍ! ---
         ]
         widgets = {
             'caducidad': forms.DateInput(attrs={'type': 'date'}),

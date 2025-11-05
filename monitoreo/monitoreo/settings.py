@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'catalogo.apps.CatalogoConfig',
     'pedidos.apps.PedidosConfig',
     
-    # 'dispositivos',  <-- Esta línea se elimina
+    # --- ¡NUEVA APP AÑADIDA! ---
+    'proveedores.apps.ProveedoresConfig',
 ]
 
 MIDDLEWARE = [

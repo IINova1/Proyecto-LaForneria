@@ -1,11 +1,11 @@
 from django.urls import path
 from . import views
 
-app_name = 'proveedores'
+app_name = 'proveedores'  # <--- MUY IMPORTANTE por el namespace
 
 urlpatterns = [
-    # Ruta para la lista de proveedores (CRUD - Read)
-    path('', views.proveedor_list, name='proveedor_list'),
-    
-    # (Aquí añadiremos 'proveedor_create', 'proveedor_update', etc. más adelante)
+    path('', views.listar_proveedores, name='listar_proveedores'),
+    path('nuevo/', views.crear_proveedor, name='crear_proveedor'),
+    path('editar/<int:pk>/', views.editar_proveedor, name='editar_proveedor'),
+    path('eliminar/<int:pk>/', views.eliminar_proveedor, name='eliminar_proveedor'),
 ]

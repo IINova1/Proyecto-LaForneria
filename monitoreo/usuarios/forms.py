@@ -1,49 +1,51 @@
-# Contenido COMPLETO para: Proyecto-LaForneria/monitoreo/usuarios/forms.py
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db import transaction
+from .models import Usuario, Direccion, Rol
 
-# --- ¡Importaciones Corregidas! ---
-from .models import Usuario, Direccion, Rol 
 
-# --- FORMULARIO DE REGISTRO PERSONALIZADO (SIMPLIFICADO) ---
+# --- FORMULARIO DE REGISTRO PERSONALIZADO ---
 class CustomRegisterForm(UserCreationForm):
     """
     Formulario para que los usuarios se registren.
-    Asigna un rol de "Cliente" por defecto.
-    LOS CAMPOS DE DIRECCIÓN HAN SIDO ELIMINADOS.
+    Asigna un rol de 'Cliente' por defecto.
+    El campo avatar es opcional.
     """
-    
-    # --- LOS CAMPOS DE DIRECCIÓN SE ELIMINARON DE AQUÍ ---
-    # calle = forms.CharField(...)
-    # numero = forms.CharField(...)
-    # ...etc...
+    avatar = forms.ImageField(
+        required=False,
+        label="Foto de perfil (opcional)",
+        widget=forms.FileInput(attrs={'class': 'form-control'})
+    )
 
     class Meta(UserCreationForm.Meta):
         model = Usuario
-        # Fono y materno siguen siendo opcionales en el registro
-        fields = ('first_name', 'last_name', 'email', 'materno', 'run', 'fono')
+        fields = ('first_name', 'last_name', 'materno', 'email', 'run', 'fono', 'avatar')
 
     @transaction.atomic
     def save(self, commit=True):
+        # Crear el usuario sin guardarlo todavía
         user = super().save(commit=False)
-        
-        # --- LÓGICA DE DIRECCIÓN ELIMINADA DE AQUÍ ---
-        # El campo user.Direccion permanecerá null por ahora.
-        
-        # Asigna el Rol
+
+        # Asignar rol 'Cliente' por defecto
         try:
             cliente_rol = Rol.objects.get(nombre='Cliente')
             user.Roles = cliente_rol
         except Rol.DoesNotExist:
             pass
-            
+
+        # Asignar avatar si se subió
+        avatar = self.cleaned_data.get('avatar')
+        if avatar:
+            user.avatar = avatar
+
+        # Guardar en la base de datos
         if commit:
             user.save()
+
         return user
 
-# --- FORMULARIO DE LOGIN PERSONALIZADO (Sin cambios) ---
+
+# --- FORMULARIO DE LOGIN PERSONALIZADO ---
 class CustomLoginForm(AuthenticationForm):
     """
     Formulario de login personalizado que usa email en lugar de username.
@@ -58,52 +60,35 @@ class CustomLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'current-password'}),
     )
 
-# --- ¡NUEVOS FORMULARIOS PARA LA PÁGINA DE PERFIL! ---
 
+# --- FORMULARIO DE PERFIL ---
 class UserProfileForm(forms.ModelForm):
     """
-    Formulario para que el usuario actualice sus datos personales opcionales.
+    Formulario para que el usuario actualice sus datos personales.
     """
     class Meta:
         model = Usuario
-        # --- ¡CAMPO AÑADIDO AQUÍ! ---
         fields = ('avatar', 'first_name', 'last_name', 'materno', 'fono', 'run')
-        # Hacemos que 'run' sea de solo lectura si ya está establecido,
-        # pero editable si no lo está.
-        widgets = {
-            'run': forms.TextInput(attrs={'readonly': True})
-        }
+        widgets = {'run': forms.TextInput(attrs={'readonly': True})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.run:
             self.fields['run'].disabled = True
-        else:
-            self.fields['run'].disabled = False
-            
-        # El email no se debe cambiar desde aquí
-        if 'email' in self.fields:
-             self.fields['email'].disabled = True
 
-    # --- ¡VALIDACIÓN AÑADIDA! (Requisito de la evaluación) ---
     def clean_avatar(self):
-        avatar = self.cleaned_data.get('avatar', False)
+        avatar = self.cleaned_data.get('avatar')
         if avatar:
-            # Validación de tamaño (ej. 2MB)
             if avatar.size > 2 * 1024 * 1024:
                 raise forms.ValidationError("¡La imagen es demasiado grande! (máximo 2MB)")
-            
-            # Validación de tipo (ej. solo jpg, png)
             main, sub = avatar.content_type.split('/')
             if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
                 raise forms.ValidationError("Tipo de archivo no válido. (Sube .jpg o .png)")
         return avatar
 
 
+# --- FORMULARIO DE DIRECCIÓN ---
 class DireccionForm(forms.ModelForm):
-    """
-    Formulario para crear o actualizar la dirección del usuario.
-    """
     class Meta:
         model = Direccion
         fields = ('calle', 'numero', 'depto', 'comuna', 'region', 'codigo_postal')

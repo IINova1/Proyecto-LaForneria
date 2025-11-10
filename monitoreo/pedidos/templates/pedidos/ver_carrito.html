@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}🛒 Mi Carrito de Compras{% endblock %}
+{% block content %}
+
+<style>
+    /* Estilos generales */
+    .carrito-header {
+        background: linear-gradient(135deg, #00b4d8, #0077b6);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .carrito-header h1 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .carrito-header p {
+        opacity: 0.9;
+    }
+
+    .table-carrito {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        background-color: #fff;
+    }
+
+    .table-carrito th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .table-carrito td {
+        vertical-align: middle;
+    }
+
+    .precio {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+
+    .subtotal {
+        font-weight: 700;
+        color: #198754;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #198754, #38b000);
+        border: none;
+        font-weight: 600;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #146c43, #2d6a4f);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #00b4d8);
+        border: none;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #0096c7);
+    }
+
+    .total-box {
+        background-color: #f1f3f5;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: right;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #212529;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    .vacio {
+        text-align: center;
+        padding: 4rem 1rem;
+        border-radius: 1rem;
+        background-color: #f8f9fa;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    .vacio p {
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+
+    <!-- Encabezado -->
+    <div class="carrito-header">
+        <h1>🛒 Mi Carrito</h1>
+        <p>Revisa tus productos antes de finalizar tu pedido</p>
+    </div>
+
+    {% if items_carrito %}
+        <!-- Tabla moderna -->
+        <div class="table-responsive mb-4">
+            <table class="table table-carrito align-middle">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-center">Precio Unitario</th>
+                        <th class="text-center">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items_carrito %}
+                    <tr>
+                        <td><strong>{{ item.producto.nombre }}</strong></td>
+                        <td class="text-center">{{ item.cantidad }}</td>
+                        <td class="text-center precio">${{ item.producto.precio }}</td>
+                        <td class="text-center subtotal">${{ item.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Total y botón de acción -->
+        <div class="total-box mb-3">
+            Total: ${{ total_carrito }}
+        </div>
+
+        <div class="text-end">
+            <a href="{% url 'pedidos:realizar_pedido' %}" class="btn btn-success btn-lg shadow-sm">
+                Finalizar Pedido ✅
+            </a>
+        </div>
+
+    {% else %}
+        <!-- Carrito vacío -->
+        <div class="vacio">
+            <h3>🛍️ Tu carrito está vacío</h3>
+            <p>Agrega algunos productos deliciosos antes de continuar</p>
+            <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-primary mt-3">Ver Productos</a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

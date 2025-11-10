@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}🎉 Pedido Exitoso{% endblock %}
+{% block content %}
+
+<style>
+    /* Fondo animado con gradiente */
+    body {
+        background: linear-gradient(135deg, #74c69d, #95d5b2);
+        background-size: 400% 400%;
+        animation: gradienteFondo 10s ease infinite;
+    }
+
+    @keyframes gradienteFondo {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .pedido-exitoso {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        max-width: 600px;
+        margin: 4rem auto;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        animation: aparecer 0.8s ease-out;
+    }
+
+    @keyframes aparecer {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .icono-check {
+        font-size: 4rem;
+        color: #38b000;
+        animation: pop 0.6s ease-out;
+    }
+
+    @keyframes pop {
+        0% { transform: scale(0); opacity: 0; }
+        60% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    .pedido-exitoso h2 {
+        font-weight: 700;
+        color: #2d6a4f;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .pedido-exitoso p {
+        font-size: 1.1rem;
+        color: #495057;
+        margin-bottom: 2rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0077b6, #00b4d8);
+        border: none;
+        font-weight: 600;
+        border-radius: 2rem;
+        padding: 0.8rem 2rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #005f73, #00a6c7);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Contenedor confeti */
+    .confeti {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .confeti span {
+        position: absolute;
+        width: 10px;
+        height: 14px;
+        opacity: 0.9;
+        border-radius: 2px;
+        will-change: transform, opacity;
+        animation: caer 3s linear forwards;
+    }
+
+    @keyframes caer {
+        0% {
+            transform: translateY(-10vh) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(110vh) rotate(720deg);
+            opacity: 0.6;
+        }
+    }
+</style>
+
+<div class="container text-center">
+    <div class="pedido-exitoso">
+        <div class="icono-check">✅</div>
+        <h2>¡Gracias por tu pedido!</h2>
+        <p>Tu pedido ha sido recibido y está siendo procesado.<br>Te avisaremos cuando esté listo 🍰</p>
+        <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-primary">Seguir comprando</a>
+    </div>
+</div>
+
+<!-- Contenedor vacío de confeti; los <span> se crearán con JS -->
+<div class="confeti" id="confetti-container" aria-hidden="true"></div>
+
+<script>
+    (function createConfetti() {
+        const container = document.getElementById('confetti-container');
+        const COUNT = 22; // cantidad de piezas de confeti
+
+        for (let i = 0; i < COUNT; i++) {
+            const piece = document.createElement('span');
+
+            // tamaño aleatorio
+            const w = 6 + Math.random() * 14;
+            const h = w + (Math.random() * 6 - 3);
+
+            piece.style.width = w + 'px';
+            piece.style.height = h + 'px';
+
+            // posición horizontal inicial
+            piece.style.left = (Math.random() * 100) + 'vw';
+
+            // delay y duración aleatoria para más naturalidad
+            const delay = Math.random() * 1.5; // segundos
+            const duration = 2.5 + Math.random() * 1.5; // segundos
+            piece.style.animationDelay = delay + 's';
+            piece.style.animationDuration = duration + 's';
+
+            // color aleatorio (HSL)
+            const hue = Math.floor(Math.random() * 360);
+            piece.style.backgroundColor = `hsl(${hue} 75% 60%)`;
+
+            // rotación inicial aleatoria
+            const rot = Math.random() * 360;
+            piece.style.transform = `rotate(${rot}deg)`;
+
+            // añadir ligera oscilación horizontal usando CSS variable y animation-timing
+            piece.style.left = (Math.random() * 100) + 'vw';
+
+            container.appendChild(piece);
+
+            // opcional: remover el elemento después de que termine la animación para limpieza
+            (function(el, totalTime) {
+                setTimeout(() => {
+                    el.remove();
+                }, (delay + duration + 0.5) * 1000);
+            })(piece, delay + duration);
+        }
+    })();
+</script>
+
+{% endblock %}

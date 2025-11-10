@@ -1,0 +1,26 @@
+[
+  {
+    "model": "catalogo.productoreglaalerta",
+    "pk": 51,
+    "fields": {
+      "producto": 31,
+      "regla": 41
+    }
+  },
+  {
+    "model": "catalogo.productoreglaalerta",
+    "pk": 52,
+    "fields": {
+      "producto": 32,
+      "regla": 42
+    }
+  },
+  {
+    "model": "catalogo.productoreglaalerta",
+    "pk": 53,
+    "fields": {
+      "producto": 33,
+      "regla": 41
+    }
+  }
+]

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - La Fornería{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            <h2 class="mb-4 text-center">Mi Perfil</h2>
+            
+            <form method="post" novalidate enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Foto de Perfil</h5>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <div class="mb-3">
+                            {% if user_form.instance.avatar %}
+                                <img src="{{ user_form.instance.avatar.url }}" alt="Avatar" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                    <span class="text-muted">Sin Foto</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <label for="{{ user_form.avatar.id_for_label }}" class="form-label fw-bold">Actualizar Foto de Perfil</label>
+                        <input type="file" name="{{ user_form.avatar.name }}" id="{{ user_form.avatar.id_for_label }}" 
+                               class="form-control {% if user_form.avatar.errors %}is-invalid{% endif %}" style="max-width: 400px; margin: 0 auto;">
+                        {% for error in user_form.avatar.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text mt-2">Sube una imagen .jpg o .png (Máx 2MB)</div>
+                    </div>
+                </div>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Datos Personales</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-3">
+                            Tu correo de inicio de sesión es: <strong>{{ request.user.email }}</strong>
+                        </p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                                <input type="text" name="{{ user_form.first_name.name }}" id="{{ user_form.first_name.id_for_label }}" 
+                                       class="form-control {% if user_form.first_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ user_form.first_name.value|default_if_none:'' }}">
+                                {% for error in user_form.first_name.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Apellido Paterno</label>
+                                <input type="text" name="{{ user_form.last_name.name }}" id="{{ user_form.last_name.id_for_label }}" 
+                                       class="form-control {% if user_form.last_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ user_form.last_name.value|default_if_none:'' }}">
+                                {% for error in user_form.last_name.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ user_form.materno.id_for_label }}" class="form-label">Apellido Materno (Opcional)</label>
+                                <input type="text" name="{{ user_form.materno.name }}" id="{{ user_form.materno.id_for_label }}" 
+                                       class="form-control {% if user_form.materno.errors %}is-invalid{% endif %}" 
+                                       value="{{ user_form.materno.value|default_if_none:'' }}">
+                                {% for error in user_form.materno.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ user_form.run.id_for_label }}" class="form-label">RUN</label>
+                                <input type="text" name="{{ user_form.run.name }}" id="{{ user_form.run.id_for_label }}" 
+                                       class="form-control {% if user_form.run.errors %}is-invalid{% endif %}" 
+                                       value="{{ user_form.run.value|default_if_none:'' }}"
+                                       {% if user_form.run.is_disabled %}readonly{% endif %}>
+                                {% if user_form.run.is_disabled %}
+                                    <div class="form-text">El RUN no se puede modificar.</div>
+                                {% endif %}
+                                {% for error in user_form.run.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ user_form.fono.id_for_label }}" class="form-label">Teléfono (Opcional)</label>
+                                <input type="text" name="{{ user_form.fono.name }}" id="{{ user_form.fono.id_for_label }}" 
+                                       class="form-control {% if user_form.fono.errors %}is-invalid{% endif %}" 
+                                       value="{{ user_form.fono.value|default_if_none:'' }}" placeholder="+569...">
+                                {% for error in user_form.fono.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Mi Dirección de Despacho</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-3">
+                            Esta dirección se usará por defecto para tus pedidos.
+                        </p>
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ direccion_form.calle.id_for_label }}" class="form-label">Calle</label>
+                                <input type="text" name="{{ direccion_form.calle.name }}" id="{{ direccion_form.calle.id_for_label }}" 
+                                       class="form-control {% if direccion_form.calle.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.calle.value|default_if_none:'' }}" placeholder="Ej: Av. del Mar">
+                                {% for error in direccion_form.calle.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ direccion_form.numero.id_for_label }}" class="form-label">Número</label>
+                                <input type="text" name="{{ direccion_form.numero.name }}" id="{{ direccion_form.numero.id_for_label }}" 
+                                       class="form-control {% if direccion_form.numero.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.numero.value|default_if_none:'' }}" placeholder="Ej: 1234">
+                                {% for error in direccion_form.numero.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ direccion_form.depto.id_for_label }}" class="form-label">Depto (Opcional)</label>
+                                <input type="text" name="{{ direccion_form.depto.name }}" id="{{ direccion_form.depto.id_for_label }}" 
+                                       class="form-control {% if direccion_form.depto.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.depto.value|default_if_none:'' }}" placeholder="Ej: 501-A">
+                                {% for error in direccion_form.depto.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ direccion_form.comuna.id_for_label }}" class="form-label">Comuna</label>
+                                <input type="text" name="{{ direccion_form.comuna.name }}" id="{{ direccion_form.comuna.id_for_label }}" 
+                                       class="form-control {% if direccion_form.comuna.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.comuna.value|default_if_none:'' }}">
+                                {% for error in direccion_form.comuna.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ direccion_form.region.id_for_label }}" class="form-label">Región</label>
+                                <input type="text" name="{{ direccion_form.region.name }}" id="{{ direccion_form.region.id_for_label }}" 
+                                       class="form-control {% if direccion_form.region.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.region.value|default_if_none:'' }}">
+                                {% for error in direccion_form.region.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ direccion_form.codigo_postal.id_for_label }}" class="form-label">Código Postal (Opcional)</label>
+                                <input type="text" name="{{ direccion_form.codigo_postal.name }}" id="{{ direccion_form.codigo_postal.id_for_label }}" 
+                                       class="form-control {% if direccion_form.codigo_postal.errors %}is-invalid{% endif %}" 
+                                       value="{{ direccion_form.codigo_postal.value|default_if_none:'' }}">
+                                {% for error in direccion_form.codigo_postal.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div> 
+                
+                {% if user_form.non_field_errors or direccion_form.non_field_errors %}
+                <div class="alert alert-danger mt-3">
+                    {% for error in user_form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                    {% for error in direccion_form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="d-grid mt-4 mb-5">
+                    <button type="submit" class="btn btn-primary btn-lg">Actualizar Perfil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

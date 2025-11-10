@@ -35,6 +35,7 @@
                         <div class="form-text mt-2">Sube una imagen .jpg o .png (Máx 2MB)</div>
                     </div>
                 </div>
+                
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">Datos Personales</h5>
@@ -187,10 +188,21 @@
                 </div>
                 {% endif %}
 
-                <div class="d-grid mt-4 mb-5">
+                <div class="d-grid mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">Actualizar Perfil</button>
                 </div>
             </form>
+
+            <div class="card shadow-sm mt-4 mb-5">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Seguridad</h5>
+                </div>
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <span>Gestiona la seguridad de tu cuenta.</span>
+                    <a href="{% url 'usuarios:password_change' %}" class="btn btn-warning">Cambiar Contraseña</a>
+                </div>
+            </div>
+            
         </div>
     </div>
 </div>

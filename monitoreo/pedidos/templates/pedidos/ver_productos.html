@@ -165,20 +165,29 @@
         <div class="form-busqueda">
             <form method="GET" action="{% url 'pedidos:ver_productos' %}" class="row g-3 align-items-end">
                 
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <label for="q" class="form-label fw-bold">Buscar Producto</label>
                     <input type="text" class="form-control" id="q" name="q" 
                            placeholder="Ej: Croissant, Torta de Chocolate..." 
                            value="{{ current_q|default:'' }}">
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="sort" class="form-label fw-bold">Ordenar por</label>
                     <select id="sort" name="sort" class="form-select">
                         <option value="alpha_asc" {% if current_sort == 'alpha_asc' %}selected{% endif %}>Nombre (A-Z)</option>
                         <option value="alpha_desc" {% if current_sort == 'alpha_desc' %}selected{% endif %}>Nombre (Z-A)</option>
                         <option value="precio_asc" {% if current_sort == 'precio_asc' %}selected{% endif %}>Precio (Menor a Mayor)</option>
                         <option value="precio_desc" {% if current_sort == 'precio_desc' %}selected{% endif %}>Precio (Mayor a Menor)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="per_page" class="form-label fw-bold">Mostrar</label>
+                    <select id="per_page" name="per_page" class="form-select">
+                        {% for option in per_page_options %}
+                        <option value="{{ option }}" {% if current_per_page == option %}selected{% endif %}>{{ option }} por pág.</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -238,9 +247,10 @@
     {% if page_obj.has_other_pages %}
     <nav aria-label="Navegación de productos" class="mt-5">
         <ul class="pagination justify-content-center">
+            
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}" aria-label="Previous">&laquo; Anterior</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}&per_page={{current_per_page}}" aria-label="Previous">&laquo; Anterior</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
@@ -250,13 +260,13 @@
                 {% if page_obj.number == i %}
                     <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                 {% else %}
-                    <li class="page-item"><a class="page-link" href="?page={{ i }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}">{{ i }}</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}&per_page={{current_per_page}}">{{ i }}</a></li>
                 {% endif %}
             {% endfor %}
 
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}" aria-label="Next">Siguiente &raquo;</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{current_q|default:''}}&sort={{current_sort|default:'alpha_asc'}}&per_page={{current_per_page}}" aria-label="Next">Siguiente &raquo;</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link">Siguiente &raquo;</span></li>

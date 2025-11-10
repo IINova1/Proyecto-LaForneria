@@ -26,10 +26,27 @@ urlpatterns = [
     
     path('register/', views.register, name='register'),
 
-    # --- ¡NUEVA RUTA DE PERFIL! ---
+    # --- Perfil de Usuario ---
     path('perfil/', views.perfil, name='perfil'),
 
-    # --- Restablecimiento de Contraseña ---
+    # --- ¡NUEVAS RUTAS! - CAMBIO DE CONTRASEÑA (Logueado) ---
+    path(
+        'perfil/cambiar-password/',
+        auth_views.PasswordChangeView.as_view(
+            template_name='usuarios/password_change.html',
+            success_url=reverse_lazy('usuarios:password_change_done')
+        ),
+        name='password_change'
+    ),
+    path(
+        'perfil/cambiar-password/done/',
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name='usuarios/password_change_done.html'
+        ),
+        name='password_change_done'
+    ),
+
+    # --- Restablecimiento de Contraseña (Olvidada) ---
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(

@@ -19,27 +19,65 @@ from catalogo.models import Producto
 def ver_productos(request):
     """
     Vista para que los clientes vean los productos disponibles.
-    ¡AHORA CON PAGINACIÓN, BÚSQUEDA Y FILTRADO!
+    ¡CON FILTROS PERSISTENTES EN SESIÓN!
     """
     
-    # 1. Obtenemos los parámetros de la URL (GET)
-    search_query = request.GET.get('q', '')
-    sort_by = request.GET.get('sort', 'alpha_asc') # Default: A-Z
-    # ¡NUEVO! Obtenemos el número de página
+    # 1. Definimos los defaults y las claves de sesión
+    DEFAULT_SORT = 'alpha_asc'
+    DEFAULT_PER_PAGE = 9 # El valor que tenías
+    PER_PAGE_OPTIONS = [5, 9, 15, 30] # Opciones para el selector
+    
+    SESSION_KEY_Q = 'productos_q'
+    SESSION_KEY_SORT = 'productos_sort'
+    SESSION_KEY_PER_PAGE = 'productos_per_page'
+
+    # --- Parámetro de Búsqueda 'q' ---
+    # Si 'q' viene en la URL, lo usamos y lo guardamos en sesión.
+    # Si no, usamos el valor de la sesión (o un string vacío).
+    if 'q' in request.GET:
+        search_query = request.GET.get('q', '')
+        request.session[SESSION_KEY_Q] = search_query
+    else:
+        search_query = request.session.get(SESSION_KEY_Q, '')
+        
+    # --- Parámetro de Orden 'sort' ---
+    # Si 'sort' viene en la URL, lo usamos y lo guardamos en sesión.
+    # Si no, usamos el valor de la sesión (o el default).
+    if 'sort' in request.GET:
+        sort_by = request.GET.get('sort', DEFAULT_SORT)
+        request.session[SESSION_KEY_SORT] = sort_by
+    else:
+        sort_by = request.session.get(SESSION_KEY_SORT, DEFAULT_SORT)
+
+    # --- Parámetro de 'per_page' (Items por página) ---
+    # Si 'per_page' viene en la URL, lo usamos y lo guardamos en sesión.
+    # Si no, usamos el valor de la sesión (o el default).
+    if 'per_page' in request.GET:
+        try:
+            per_page = int(request.GET.get('per_page', DEFAULT_PER_PAGE))
+            if per_page not in PER_PAGE_OPTIONS:
+                per_page = DEFAULT_PER_PAGE
+        except ValueError:
+            per_page = DEFAULT_PER_PAGE
+        request.session[SESSION_KEY_PER_PAGE] = per_page
+    else:
+        per_page = request.session.get(SESSION_KEY_PER_PAGE, DEFAULT_PER_PAGE)
+
+    # --- Parámetro de 'page' (No es persistente) ---
+    # La página actual siempre se toma de la URL, nunca de la sesión.
     page_number = request.GET.get('page', 1)
 
-    # 2. Empezamos con el queryset base
-    # Cambiamos el nombre a 'productos_list' para claridad
+    # 3. Empezamos con el queryset base
     productos_list = Producto.objects.filter(stock_actual__gt=0)
 
-    # 3. Aplicamos el filtro de BÚSQUEDA si existe
+    # 4. Aplicamos el filtro de BÚSQUEDA si existe
     if search_query:
         productos_list = productos_list.filter(
             Q(nombre__icontains=search_query) |
             Q(descripcion__icontains=search_query)
         )
 
-    # 4. Aplicamos el ORDENAMIENTO
+    # 5. Aplicamos el ORDENAMIENTO
     if sort_by == 'precio_asc':
         productos_list = productos_list.order_by('precio')
     elif sort_by == 'precio_desc':
@@ -49,9 +87,8 @@ def ver_productos(request):
     else: # 'alpha_asc' o por defecto
         productos_list = productos_list.order_by('nombre')
 
-    # 5. ¡NUEVO! Aplicamos la Paginación
-    # (Dividimos la lista en páginas de 9 productos cada una)
-    paginator = Paginator(productos_list, 9) 
+    # 6. Aplicamos la Paginación (usando el valor 'per_page' de la sesión)
+    paginator = Paginator(productos_list, per_page)
     
     try:
         # Obtenemos solo los productos para la página actual
@@ -59,14 +96,14 @@ def ver_productos(request):
     except Exception: # (Cubre PageNotAnInteger y EmptyPage)
         page_obj = paginator.get_page(1)
 
-
-    # 6. Pasamos todo al contexto
+    # 7. Pasamos todo al contexto
     context = {
-        # ¡CAMBIO! Pasamos 'page_obj' en lugar de 'productos'
         'page_obj': page_obj,
-        'paginator': paginator, # Pasamos el paginador para los controles
-        'current_q': search_query,
-        'current_sort': sort_by
+        'paginator': paginator,
+        'current_q': search_query, # Pasa el valor (de URL o sesión)
+        'current_sort': sort_by, # Pasa el valor (de URL o sesión)
+        'current_per_page': per_page, # Pasa el valor (de URL o sesión)
+        'per_page_options': PER_PAGE_OPTIONS, # Pasa las opciones para el <select>
     }
     
     # --- RUTA DE PLANTILLA CORREGIDA ---

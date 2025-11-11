@@ -42,8 +42,6 @@ def dashboard(request):
     total_productos = Producto.objects.count()
     total_clientes = Cliente.objects.count()
     total_pedidos = Pedido.objects.count()
-    
-    # Esta línea fallará si la tabla 'proveedores_proveedor' no existe
     total_proveedores = Proveedor.objects.count()
 
     # --- ¡LÓGICA MEJORADA! ---

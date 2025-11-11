@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError # <-- Importado para validaci
 
 
 # --- Función Auxiliar para Validar RUT Chileno ---
+# --- Función Auxiliar para Validar RUT Chileno ---
+# --- Función Auxiliar para Validar RUT Chileno ---
 def validar_rut(rut):
     """
     Valida un RUT chileno.
@@ -20,7 +22,18 @@ def validar_rut(rut):
     
     try:
         suma = sum(int(cuerpo[-(i + 1)]) * (i % 6 + 2) for i in range(len(cuerpo)))
-        dv_calculado = "10K"[11 - suma % 11]
+        
+        # --- LÓGICA CORREGIDA ---
+        resultado = 11 - (suma % 11)
+        
+        if resultado == 11:
+            dv_calculado = '0'
+        elif resultado == 10:
+            dv_calculado = 'K'
+        else:
+            dv_calculado = str(resultado)
+        # --- FIN DE LA CORRECCIÓN ---
+            
         return dv == dv_calculado
     except ValueError:
         return False

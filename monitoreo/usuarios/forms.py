@@ -84,13 +84,20 @@ class CustomRegisterForm(UserCreationForm):
 
     # --- VALIDACIONES AÑADIDAS ---
     def clean_run(self):
-        run = self.cleaned_data.get('run')
-        if not run:
+        run_raw = self.cleaned_data.get('run')
+        if not run_raw:
             raise ValidationError("Este campo es obligatorio.")
-        if not validar_rut(run):
-            raise ValidationError("RUT inválido. Formato: 12345678-9")
-        # Devuelve el RUT limpio (sin puntos ni guion)
-        return str(run).upper().replace(".", "").replace("-", "")
+        
+        # 1. LIMPIAMOS PRIMERO: Quitamos espacios, puntos, guiones
+        run_limpio = str(run_raw).strip().upper().replace(".", "").replace("-", "")
+        
+        # 2. VALIDAMOS el RUT limpio
+        if not validar_rut(run_limpio):
+            # Mensaje más claro
+            raise ValidationError("RUT inválido o dígito verificador incorrecto.")
+        
+        # 3. DEVOLVEMOS el RUT limpio para la BD
+        return run_limpio
 
     def clean_fono(self):
         fono = self.cleaned_data.get('fono')

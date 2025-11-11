@@ -7,23 +7,18 @@ from django.core.exceptions import ValidationError # <-- Importado para validaci
 
 
 # --- Función Auxiliar para Validar RUT Chileno ---
-# --- Función Auxiliar para Validar RUT Chileno ---
-# --- Función Auxiliar para Validar RUT Chileno ---
-def validar_rut(rut):
+def validar_rut(rut_limpio):
     """
-    Valida un RUT chileno.
+    Valida un RUT chileno (asume que ya viene limpio, ej: "12345678K").
     """
-    rut = str(rut).upper().replace(".", "").replace("-", "")
-    if not re.match(r'^\d{7,8}[0-9K]$', rut):
+    if not re.match(r'^\d{7,8}[0-9K]$', rut_limpio):
         return False
     
-    cuerpo = rut[:-1]
-    dv = rut[-1]
+    cuerpo = rut_limpio[:-1]
+    dv = rut_limpio[-1]
     
     try:
         suma = sum(int(cuerpo[-(i + 1)]) * (i % 6 + 2) for i in range(len(cuerpo)))
-        
-        # --- LÓGICA CORREGIDA ---
         resultado = 11 - (suma % 11)
         
         if resultado == 11:
@@ -32,7 +27,6 @@ def validar_rut(rut):
             dv_calculado = 'K'
         else:
             dv_calculado = str(resultado)
-        # --- FIN DE LA CORRECCIÓN ---
             
         return dv == dv_calculado
     except ValueError:
@@ -44,7 +38,6 @@ class CustomRegisterForm(UserCreationForm):
     """
     Formulario para que los usuarios se registren.
     Asigna un rol de 'Cliente' por defecto.
-    El campo avatar es opcional.
     """
     avatar = forms.ImageField(
         required=False,
@@ -58,31 +51,26 @@ class CustomRegisterForm(UserCreationForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        # Crear el usuario sin guardarlo todavía.
-        # super().save() ya asigna todos los campos del Meta:
-        # (first_name, last_name, materno, email, run, fono, avatar)
         user = super().save(commit=False)
 
-        # Asignar rol 'Cliente' por defecto
+        # Asignar rol 'Cliente' por defecto (con captura de errores robusta)
         try:
             cliente_rol = Rol.objects.get(nombre='Cliente')
             user.Roles = cliente_rol
         except Rol.DoesNotExist:
-            # ¡IMPORTANTE! Esto fallará si el Rol 'Cliente' no existe en la BD.
-            # Asegúrate de crearlo después de migrar.
-            print("ADVERTENCIA: El Rol 'Cliente' no existe en la BD. El usuario se creó sin rol.")
-            pass
-        
-        # --- Las asignaciones redundantes de run, fono y avatar se eliminaron ---
-        # super().save() ya se encargó de ellas.
+            # Si 'Cliente' no existe en la BD, se mostrará este error 
+            # en la alerta roja {% if form.non_field_errors %}
+            raise ValidationError("Error de configuración: El Rol 'Cliente' no existe en la base de datos.")
+        except Exception as e:
+            # Captura cualquier otro error (ej. tabla no existe)
+            raise ValidationError(f"Error inesperado al asignar rol: {e}")
 
-        # Guardar en la base de datos
         if commit:
             user.save()
-
         return user
 
-    # --- VALIDACIONES AÑADIDAS ---
+    # --- VALIDACIONES (Versión final) ---
+    
     def clean_run(self):
         run_raw = self.cleaned_data.get('run')
         if not run_raw:
@@ -93,7 +81,6 @@ class CustomRegisterForm(UserCreationForm):
         
         # 2. VALIDAMOS el RUT limpio
         if not validar_rut(run_limpio):
-            # Mensaje más claro
             raise ValidationError("RUT inválido o dígito verificador incorrecto.")
         
         # 3. DEVOLVEMOS el RUT limpio para la BD
@@ -101,17 +88,18 @@ class CustomRegisterForm(UserCreationForm):
 
     def clean_fono(self):
         fono = self.cleaned_data.get('fono')
-        if fono: # Solo valida si no está vacío
-            # Regex para formato +569XXXXXXXX (9 dígitos después del +56)
-            if not re.match(r'^\+569\d{8}$', fono):
+        if fono:
+            # Limpiamos espacios (ej. "+569 12345678")
+            fono_limpio = fono.strip()
+            if not re.match(r'^\+569\d{8}$', fono_limpio):
                 raise ValidationError("Formato de teléfono inválido. Debe ser +569XXXXXXXX")
-        return fono
+            return fono_limpio # Devolvemos el fono limpio
+        return fono # Devuelve None o "" si está vacío
     
     def clean_avatar(self):
         avatar = self.cleaned_data.get('avatar')
         if avatar:
-            # 2 MB Límite
-            if avatar.size > 2 * 1024 * 1024: 
+            if avatar.size > 2 * 1024 * 1024: # 2 MB Límite
                 raise forms.ValidationError("¡La imagen es demasiado grande! (máximo 2MB)")
             main, sub = avatar.content_type.split('/')
             if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
@@ -143,11 +131,10 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ('avatar', 'first_name', 'last_name', 'materno', 'fono', 'run')
-        widgets = {'run': forms.TextInput(attrs={'readonly': True})} # Hacemos 'run' solo lectura
+        widgets = {'run': forms.TextInput(attrs={'readonly': True})} 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Deshabilitamos el campo 'run' si el usuario ya tiene uno
         if self.instance and self.instance.run:
             self.fields['run'].disabled = True
 
@@ -161,16 +148,15 @@ class UserProfileForm(forms.ModelForm):
                 raise forms.ValidationError("Tipo de archivo no válido. (Sube .jpg o .png)")
         return avatar
 
-    # --- VALIDACIÓN DE FONO AÑADIDA ---
     def clean_fono(self):
         fono = self.cleaned_data.get('fono')
-        if fono: # Solo valida si no está vacío
-            if not re.match(r'^\+569\d{8}$', fono):
+        if fono:
+            # Limpiamos espacios también en el perfil
+            fono_limpio = fono.strip()
+            if not re.match(r'^\+569\d{8}$', fono_limpio):
                 raise ValidationError("Formato de teléfono inválido. Debe ser +569XXXXXXXX")
+            return fono_limpio
         return fono
-    
-    # Nota: No necesitamos clean_run aquí porque el campo está deshabilitado
-    # por __init__ y no se enviará para validación si ya existe.
 
 
 # --- FORMULARIO DE DIRECCIÓN ---

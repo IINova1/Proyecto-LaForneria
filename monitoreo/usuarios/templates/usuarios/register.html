@@ -29,6 +29,7 @@
                     <div class="card-body p-4 text-center">
                         <label for="{{ form.avatar.id_for_label }}" class="form-label fw-bold">Sube una foto</label>
                         {{ form.avatar }}
+                        
                         {% for error in form.avatar.errors %}
                             <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
@@ -48,6 +49,7 @@
                                 <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
                                        class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
                                        value="{{ form.first_name.value|default_if_none:'' }}" required>
+                                
                                 {% for error in form.first_name.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -58,6 +60,7 @@
                                 <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
                                        class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
                                        value="{{ form.last_name.value|default_if_none:'' }}" required>
+                                
                                 {% for error in form.last_name.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -78,6 +81,7 @@
                                 <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" 
                                        class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
                                        value="{{ form.email.value|default_if_none:'' }}" required>
+                                
                                 {% for error in form.email.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -89,6 +93,7 @@
                                        class="form-control {% if form.run.errors %}is-invalid{% endif %}" 
                                        value="{{ form.run.value|default_if_none:'' }}" 
                                        placeholder="12.345.678-9" required>
+                                
                                 {% for error in form.run.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -99,6 +104,7 @@
                                 <input type="text" name="{{ form.fono.name }}" id="{{ form.fono.id_for_label }}" 
                                        class="form-control {% if form.fono.errors %}is-invalid{% endif %}" 
                                        value="{{ form.fono.value|default_if_none:'' }}" placeholder="+56912345678">
+                                
                                 {% for error in form.fono.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -129,6 +135,7 @@
                                 <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" 
                                        class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
                                        required>
+                                
                                 {% for error in form.password2.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
@@ -177,39 +184,25 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Encontrar el campo del RUT (el ID es 'id_run' por Django)
     const rutInput = document.getElementById('id_run');
-
     if (rutInput) {
-        // 2. Establecer un largo máximo (12.345.678-K)
         rutInput.setAttribute('maxlength', '12');
-
-        // 3. Escuchar cada vez que el usuario teclea algo
         rutInput.addEventListener('input', function(e) {
             let value = e.target.value;
-
-            // 4. Limpiar el valor: quitar todo excepto números y 'k' o 'K'
             let cleanValue = value.replace(/[^0-9kK]/g, '');
 
-            // Si no hay nada, terminar
             if (cleanValue.length === 0) {
                 e.target.value = '';
                 return;
             }
 
-            // 5. Separar el cuerpo del dígito verificador
             let body = cleanValue.slice(0, -1);
             let dv = cleanValue.slice(-1).toUpperCase();
-
-            // 6. Formatear el cuerpo con puntos (ej. 12345678 -> 12.345.678)
             body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-            // 7. Reconstruir el valor
-            // Solo añadir el guion si el cuerpo (body) existe
             if (body) {
                 e.target.value = body + '-' + dv;
             } else {
-                // Si solo hay un caracter (el DV), solo mostrarlo
                 e.target.value = dv;
             }
         });

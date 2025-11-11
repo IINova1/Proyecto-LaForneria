@@ -1,212 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}
-    {% if es_admin %}
-        Crear Nuevo Usuario (Admin)
-    {% else %}
-        Crear Cuenta - La Fornería
-    {% endif %}
-{% endblock %}
+{% block title %}Crear Cuenta - La Fornería{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-8">
-            
-            {% if es_admin %}
-                <h2 class="mb-4 text-center">Crear Nuevo Usuario (Admin)</h2>
-            {% else %}
-                <h2 class="mb-4 text-center">Crear Nueva Cuenta</h2>
-            {% endif %}
-            
-            <form method="post" novalidate enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Foto de Perfil (Opcional)</h5>
-                    </div>
-                    <div class="card-body p-4 text-center">
-                        <label for="{{ form.avatar.id_for_label }}" class="form-label fw-bold">Sube una foto</label>
-                        {{ form.avatar }}
-                        
-                        {% for error in form.avatar.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                        <div class="form-text mt-2">{{ form.avatar.help_text|default:"Sube una imagen .jpg o .png (Máx 2MB)" }}</div>
-                    </div>
-                </div>
-                
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Datos Personales</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
-                                <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
-                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.first_name.value|default_if_none:'' }}" required>
-                                
-                                {% for error in form.first_name.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow-lg p-4">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4" style="color: var(--primary-color);">Crear una cuenta</h2>
+                <p class="text-center text-muted mb-4">
+                    Únete a La Fornería para disfrutar de nuestros productos artesanales.
+                </p>
 
-                            <div class="col-md-6">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
-                                <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
-                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.last_name.value|default_if_none:'' }}" required>
-                                
-                                {% for error in form.last_name.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.materno.id_for_label }}" class="form-label">{{ form.materno.label }}</label>
-                                <input type="text" name="{{ form.materno.name }}" id="{{ form.materno.id_for_label }}" 
-                                       class="form-control {% if form.materno.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.materno.value|default_if_none:'' }}">
-                                {% for error in form.materno.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                                <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" 
-                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.email.value|default_if_none:'' }}" required>
-                                
-                                {% for error in form.email.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.run.id_for_label }}" class="form-label">{{ form.run.label }}</label>
-                                <input type="text" name="{{ form.run.name }}" id="{{ form.run.id_for_label }}" 
-                                       class="form-control {% if form.run.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.run.value|default_if_none:'' }}" 
-                                       placeholder="12.345.678-9" required>
-                                
-                                {% for error in form.run.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.fono.id_for_label }}" class="form-label">{{ form.fono.label }}</label>
-                                <input type="text" name="{{ form.fono.name }}" id="{{ form.fono.id_for_label }}" 
-                                       class="form-control {% if form.fono.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.fono.value|default_if_none:'' }}" placeholder="+56912345678">
-                                
-                                {% for error in form.fono.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div> 
-
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Seguridad</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
-                                <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" 
-                                       class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
-                                       required>
-                                {% for error in form.password.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
-                                <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" 
-                                       class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
-                                       required>
-                                
-                                {% for error in form.password2.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-12">
-                                <div class="form-text">
-                                    {{ form.password.help_text|safe }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> 
-                
-                {% if form.non_field_errors %}
-                <div class="alert alert-danger mt-3">
-                    {% for error in form.non_field_errors %}
-                        <p class="mb-0">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        {% if es_admin %}
-                            Crear Usuario
-                        {% else %}
-                            Crear Cuenta
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
                         {% endif %}
-                    </button>
-                </div>
-            </form>
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
 
-            {% if not es_admin %}
-            <div class="text-center mt-3">
-                <p>¿Ya tienes una cuenta? <a href="{% url 'usuarios:login' %}">Inicia sesión</a></p>
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Registrarse</button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p class="mb-0">
+                        ¿Ya tienes una cuenta?
+                        <a href="{% url 'usuarios:login' %}" style="color: var(--primary-color);">Inicia sesión</a>
+                    </p>
+                </div>
             </div>
-            {% endif %}
-            
         </div>
     </div>
 </div>
-{% endblock %}
-
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const rutInput = document.getElementById('id_run');
-    if (rutInput) {
-        rutInput.setAttribute('maxlength', '12');
-        rutInput.addEventListener('input', function(e) {
-            let value = e.target.value;
-            let cleanValue = value.replace(/[^0-9kK]/g, '');
-
-            if (cleanValue.length === 0) {
-                e.target.value = '';
-                return;
-            }
-
-            let body = cleanValue.slice(0, -1);
-            let dv = cleanValue.slice(-1).toUpperCase();
-            body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-            if (body) {
-                e.target.value = body + '-' + dv;
-            } else {
-                e.target.value = dv;
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

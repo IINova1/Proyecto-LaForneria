@@ -1,5 +1,3 @@
-# Contenido COMPLETO para: Proyecto-LaForneria/monitoreo/usuarios/views.py
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -7,6 +5,7 @@ from django.contrib import messages
 # --- ¡Importaciones Añadidas! ---
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError # <-- ¡IMPORTANTE!
 
 # --- ¡Importaciones Corregidas! ---
 # Importamos los formularios y modelos desde la app local 'usuarios'
@@ -26,12 +25,28 @@ def register(request):
     if request.method == 'POST':
         # --- ¡Corrección! Se añade request.FILES para el avatar ---
         form = CustomRegisterForm(request.POST, request.FILES)
+        
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta ha sido creada.')
-            # Redirige al nuevo usuario a la tienda
-            return redirect('pedidos:ver_productos')
+            try:
+                # --- ¡CORRECCIÓN! Ponemos el .save() dentro de un try ---
+                # para atrapar el error del Rol si no existe.
+                user = form.save()
+                
+                # Si .save() funciona, continuamos
+                login(request, user)
+                messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta ha sido creada.')
+                # Redirige al nuevo usuario a la tienda
+                return redirect('pedidos:ver_productos')
+
+            except ValidationError as e:
+                # --- ¡CORRECCIÓN! Si form.save() lanza el error,
+                # lo atrapamos y lo añadimos a los non_field_errors
+                # para que la plantilla lo muestre.
+                form.add_error(None, e)
+        
+        # Si form.is_valid() fue Falso, o si form.save() falló,
+        # la función continúa aquí, renderizando el 'form' con los errores.
+        
     else:
         form = CustomRegisterForm()
     
@@ -147,7 +162,7 @@ def usuario_create(request):
         form = CustomRegisterForm()
         
     # 'es_admin' puede usarse en la plantilla para cambiar el título
-    return render(request, 'usuarios/register.html', {'form': form, 'es_admin': True}) 
+    return render(request, 'usuarios/register.html', {'form': form, 'es_admin': True})
 
 @login_required
 def usuario_update(request, pk):
@@ -171,7 +186,7 @@ def usuario_update(request, pk):
         form = UserProfileForm(instance=usuario)
         
     # Renderiza en una plantilla separada para no confundir con el perfil del admin
-    return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario}) 
+    return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario})
 
 @login_required
 def usuario_delete(request, pk):

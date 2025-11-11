@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}{{ accion }} Proveedor{% endblock %}
 
 {% block content %}
@@ -12,9 +11,9 @@
                 {% csrf_token %}
                 {{ form.as_p }}
 
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary">{{ accion }}</button>
+                <div class="mt-3 d-flex justify-content-end gap-2">
                     <a href="{% url 'proveedores:listar_proveedores' %}" class="btn btn-secondary">Volver</a>
+                    <button type="submit" class="btn btn-success">{{ accion }}</button>
                 </div>
             </form>
         </div>
@@ -24,12 +23,12 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Mensajes Django -->
+<!-- Mostrar mensajes Django -->
 {% if messages %}
     {% for message in messages %}
         <script>
             Swal.fire({
-                icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+                icon: '{% if "success" in message.tags %}success{% elif "error" in message.tags %}error{% else %}info{% endif %}',
                 title: '{{ message|escapejs }}',
                 timer: 2500,
                 showConfirmButton: false
@@ -53,7 +52,7 @@ document.getElementById('proveedorForm').addEventListener('submit', function(e) 
         return false;
     }
 
-    // Validar formato de RUT básico
+    // Validar formato básico de RUT (chileno)
     let rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
     if (!rutRegex.test(rut)) {
         Swal.fire('Error', 'Formato de RUT inválido. Ej: 12.345.678-9', 'error');
@@ -67,7 +66,7 @@ document.getElementById('proveedorForm').addEventListener('submit', function(e) 
         return false;
     }
 
-    // Validar teléfono opcional si se ingresa
+    // Validar teléfono opcional
     if (telefono) {
         let telRegex = /^\+?\d[\d\s\-]{7,14}$/;
         if (!telRegex.test(telefono)) {
@@ -76,7 +75,7 @@ document.getElementById('proveedorForm').addEventListener('submit', function(e) 
         }
     }
 
-    // Si pasa todas las validaciones, se envía el formulario
+    // Si todo está OK → enviar
     this.submit();
 });
 </script>

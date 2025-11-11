@@ -39,7 +39,9 @@
                                 
                                 <td>
                                     <a href="{% url 'catalogo:producto_update' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
-                                    <a href="{% url 'catalogo:producto_delete' producto.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                                    
+                                    <!-- BOTÓN MODIFICADO AQUÍ -->
+                                    <a href="{% url 'catalogo:producto_delete' producto.id %}" class="btn btn-danger btn-sm btn-eliminar-swal">Eliminar</a>
                                 </td>
                             </tr>
                         {% endfor %}

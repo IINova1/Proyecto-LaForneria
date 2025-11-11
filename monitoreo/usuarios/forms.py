@@ -2,6 +2,28 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db import transaction
 from .models import Usuario, Direccion, Rol
+import re # <-- Importado para Expresiones Regulares
+from django.core.exceptions import ValidationError # <-- Importado para validaciones
+
+
+# --- Función Auxiliar para Validar RUT Chileno ---
+def validar_rut(rut):
+    """
+    Valida un RUT chileno.
+    """
+    rut = str(rut).upper().replace(".", "").replace("-", "")
+    if not re.match(r'^\d{7,8}[0-9K]$', rut):
+        return False
+    
+    cuerpo = rut[:-1]
+    dv = rut[-1]
+    
+    try:
+        suma = sum(int(cuerpo[-(i + 1)]) * (i % 6 + 2) for i in range(len(cuerpo)))
+        dv_calculado = "10K"[11 - suma % 11]
+        return dv == dv_calculado
+    except ValueError:
+        return False
 
 
 # --- FORMULARIO DE REGISTRO PERSONALIZADO ---
@@ -37,12 +59,44 @@ class CustomRegisterForm(UserCreationForm):
         avatar = self.cleaned_data.get('avatar')
         if avatar:
             user.avatar = avatar
+            
+        # Asignar RUT y Fono limpios (ya validados)
+        user.run = self.cleaned_data.get('run')
+        user.fono = self.cleaned_data.get('fono')
 
         # Guardar en la base de datos
         if commit:
             user.save()
 
         return user
+
+    # --- VALIDACIONES AÑADIDAS ---
+    def clean_run(self):
+        run = self.cleaned_data.get('run')
+        if not run:
+            raise ValidationError("Este campo es obligatorio.")
+        if not validar_rut(run):
+            raise ValidationError("RUT inválido. Formato: 12345678-9")
+        # Devuelve el RUT limpio (sin puntos ni guion)
+        return str(run).upper().replace(".", "").replace("-", "")
+
+    def clean_fono(self):
+        fono = self.cleaned_data.get('fono')
+        if fono: # Solo valida si no está vacío
+            # Regex para formato +569XXXXXXXX (9 dígitos después del +56)
+            if not re.match(r'^\+569\d{8}$', fono):
+                raise ValidationError("Formato de teléfono inválido. Debe ser +569XXXXXXXX")
+        return fono
+    
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if avatar:
+            if avatar.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("¡La imagen es demasiado grande! (máximo 2MB)")
+            main, sub = avatar.content_type.split('/')
+            if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
+                raise forms.ValidationError("Tipo de archivo no válido. (Sube .jpg o .png)")
+        return avatar
 
 
 # --- FORMULARIO DE LOGIN PERSONALIZADO ---
@@ -69,10 +123,11 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ('avatar', 'first_name', 'last_name', 'materno', 'fono', 'run')
-        widgets = {'run': forms.TextInput(attrs={'readonly': True})}
+        widgets = {'run': forms.TextInput(attrs={'readonly': True})} # Hacemos 'run' solo lectura por defecto
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Deshabilitamos el campo 'run' si el usuario ya tiene uno
         if self.instance and self.instance.run:
             self.fields['run'].disabled = True
 
@@ -85,6 +140,17 @@ class UserProfileForm(forms.ModelForm):
             if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
                 raise forms.ValidationError("Tipo de archivo no válido. (Sube .jpg o .png)")
         return avatar
+
+    # --- VALIDACIÓN DE FONO AÑADIDA ---
+    def clean_fono(self):
+        fono = self.cleaned_data.get('fono')
+        if fono: # Solo valida si no está vacío
+            if not re.match(r'^\+569\d{8}$', fono):
+                raise ValidationError("Formato de teléfono inválido. Debe ser +569XXXXXXXX")
+        return fono
+    
+    # Nota: No necesitamos clean_run aquí porque el campo está deshabilitado
+    # por __init__ y no se enviará para validación si ya existe.
 
 
 # --- FORMULARIO DE DIRECCIÓN ---

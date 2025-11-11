@@ -30,7 +30,6 @@ class CustomUserManager(BaseUserManager):
 # --- Modelo de Roles ---
 class Rol(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
-    # He quitado 'descripcion' para mantenerlo simple, puedes volver a añadirlo si lo usas.
 
     def __str__(self):
         return self.nombre
@@ -54,8 +53,8 @@ class Usuario(AbstractUser):
     
     # --- Datos Personales ---
     run = models.CharField(max_length=12, unique=True, blank=False, null=False)
-    first_name = models.CharField(max_length=150) # Aumentado para consistencia
-    last_name = models.CharField(max_length=150) # Aumentado para consistencia
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     materno = models.CharField(max_length=100, blank=True, null=True)
     
     # Correcto: CharField para aceptar "+569..."

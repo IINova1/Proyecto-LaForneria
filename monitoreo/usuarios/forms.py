@@ -45,7 +45,9 @@ class CustomRegisterForm(UserCreationForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        # Crear el usuario sin guardarlo todavía
+        # Crear el usuario sin guardarlo todavía.
+        # super().save() ya asigna todos los campos del Meta:
+        # (first_name, last_name, materno, email, run, fono, avatar)
         user = super().save(commit=False)
 
         # Asignar rol 'Cliente' por defecto
@@ -53,16 +55,13 @@ class CustomRegisterForm(UserCreationForm):
             cliente_rol = Rol.objects.get(nombre='Cliente')
             user.Roles = cliente_rol
         except Rol.DoesNotExist:
+            # ¡IMPORTANTE! Esto fallará si el Rol 'Cliente' no existe en la BD.
+            # Asegúrate de crearlo después de migrar.
+            print("ADVERTENCIA: El Rol 'Cliente' no existe en la BD. El usuario se creó sin rol.")
             pass
-
-        # Asignar avatar si se subió
-        avatar = self.cleaned_data.get('avatar')
-        if avatar:
-            user.avatar = avatar
-            
-        # Asignar RUT y Fono limpios (ya validados)
-        user.run = self.cleaned_data.get('run')
-        user.fono = self.cleaned_data.get('fono')
+        
+        # --- Las asignaciones redundantes de run, fono y avatar se eliminaron ---
+        # super().save() ya se encargó de ellas.
 
         # Guardar en la base de datos
         if commit:
@@ -91,7 +90,8 @@ class CustomRegisterForm(UserCreationForm):
     def clean_avatar(self):
         avatar = self.cleaned_data.get('avatar')
         if avatar:
-            if avatar.size > 2 * 1024 * 1024:
+            # 2 MB Límite
+            if avatar.size > 2 * 1024 * 1024: 
                 raise forms.ValidationError("¡La imagen es demasiado grande! (máximo 2MB)")
             main, sub = avatar.content_type.split('/')
             if not (main == 'image' and sub in ['jpeg', 'png', 'jpg']):
@@ -123,7 +123,7 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ('avatar', 'first_name', 'last_name', 'materno', 'fono', 'run')
-        widgets = {'run': forms.TextInput(attrs={'readonly': True})} # Hacemos 'run' solo lectura por defecto
+        widgets = {'run': forms.TextInput(attrs={'readonly': True})} # Hacemos 'run' solo lectura
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

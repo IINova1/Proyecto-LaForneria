@@ -1,11 +1,9 @@
+# Contenido COMPLETO para: Proyecto-LaForneria/monitoreo/usuarios/views.py
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-# --- ¡Importaciones Añadidas! ---
-from django.db.models import Q
-from django.core.paginator import Paginator
-from django.core.exceptions import ValidationError # <-- ¡IMPORTANTE!
 
 # --- ¡Importaciones Corregidas! ---
 # Importamos los formularios y modelos desde la app local 'usuarios'
@@ -20,33 +18,16 @@ from .models import Usuario, Direccion
 
 def register(request):
     """
-    Vista para el registro de nuevos usuarios.
+    Vista para el registro de nuevos usuarios (Ahora simplificada).
     """
     if request.method == 'POST':
-        # --- ¡Corrección! Se añade request.FILES para el avatar ---
-        form = CustomRegisterForm(request.POST, request.FILES)
-        
+        form = CustomRegisterForm(request.POST)
         if form.is_valid():
-            try:
-                # --- ¡CORRECCIÓN! Ponemos el .save() dentro de un try ---
-                # para atrapar el error del Rol si no existe.
-                user = form.save()
-                
-                # Si .save() funciona, continuamos
-                login(request, user)
-                messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta ha sido creada.')
-                # Redirige al nuevo usuario a la tienda
-                return redirect('pedidos:ver_productos')
-
-            except ValidationError as e:
-                # --- ¡CORRECCIÓN! Si form.save() lanza el error,
-                # lo atrapamos y lo añadimos a los non_field_errors
-                # para que la plantilla lo muestre.
-                form.add_error(None, e)
-        
-        # Si form.is_valid() fue Falso, o si form.save() falló,
-        # la función continúa aquí, renderizando el 'form' con los errores.
-        
+            user = form.save()
+            login(request, user)
+            messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta ha sido creada.')
+            # Redirige al nuevo usuario a la tienda
+            return redirect('pedidos:ver_productos')
     else:
         form = CustomRegisterForm()
     
@@ -66,7 +47,7 @@ def perfil(request):
         direccion = None
 
     if request.method == 'POST':
-        # --- ¡Correcto! Se incluye request.FILES ---
+        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
         user_form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         direccion_form = DireccionForm(request.POST, instance=direccion)
         
@@ -98,62 +79,31 @@ def perfil(request):
         'user_form': user_form,
         'direccion_form': direccion_form
     }
-    # Renderiza la plantilla de perfil
+    # Renderiza la nueva plantilla que crearemos en el siguiente paso
     return render(request, 'usuarios/perfil.html', context)
 
 
 # ----------------------------------------
 # Vistas Protegidas (SOLO PARA ADMINS)
 # --- CRUD de Usuarios ---
+# (El resto de las vistas de admin (usuario_list, etc.) sigue igual)
 # ----------------------------------------
 
 @login_required
 def usuario_list(request):
-    """
-    Vista para listar, buscar y paginar usuarios (SOLO STAFF).
-    (Versión actualizada con filtro y paginación)
-    """
     if not request.user.is_staff:
-        messages.error(request, "No tienes permisos para acceder a esta página.")
         return redirect('pedidos:ver_productos')
-    
-    # Lógica de Búsqueda
-    query = request.GET.get('q', '').strip()
-    page_number = request.GET.get('page', 1)
-
-    # Queryset base
-    usuarios_qs = Usuario.objects.all().order_by('first_name')
-
-    if query:
-        usuarios_qs = usuarios_qs.filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(email__icontains=query) |
-            Q(run__icontains=query)
-        )
-
-    # Lógica de Paginación
-    paginator = Paginator(usuarios_qs, 10) # 10 usuarios por página
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'usuarios': page_obj, # Pasamos el objeto de página
-        'query': query,
-    }
-    return render(request, 'usuarios/usuario_list.html', context)
-
+        
+    usuarios = Usuario.objects.all()
+    return render(request, 'usuarios/usuario_list.html', {'usuarios': usuarios})
 
 @login_required
 def usuario_create(request):
-    """
-    Vista para que un Admin cree un nuevo usuario (SOLO STAFF).
-    """
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
         
     if request.method == 'POST':
-        # --- ¡Corrección! Se añade request.FILES para el avatar ---
-        form = CustomRegisterForm(request.POST, request.FILES) # Sigue usando el form de registro
+        form = CustomRegisterForm(request.POST) # Sigue usando el form de registro
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario creado exitosamente.')
@@ -161,14 +111,10 @@ def usuario_create(request):
     else:
         form = CustomRegisterForm()
         
-    # 'es_admin' puede usarse en la plantilla para cambiar el título
-    return render(request, 'usuarios/register.html', {'form': form, 'es_admin': True})
+    return render(request, 'usuarios/register.html', {'form': form}) 
 
 @login_required
 def usuario_update(request, pk):
-    """
-    Vista para que un Admin edite un usuario (SOLO STAFF).
-    """
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
         
@@ -176,7 +122,7 @@ def usuario_update(request, pk):
     
     # Los admins ahora usarán el UserProfileForm para editar
     if request.method == 'POST':
-        # --- ¡Correcto! Se incluye request.FILES ---
+        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
         form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             form.save()
@@ -185,14 +131,11 @@ def usuario_update(request, pk):
     else:
         form = UserProfileForm(instance=usuario)
         
-    # Renderiza en una plantilla separada para no confundir con el perfil del admin
-    return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario})
+    # Renderiza en la plantilla de perfil, pero podría tener una propia
+    return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario}) 
 
 @login_required
 def usuario_delete(request, pk):
-    """
-    Vista para que un Admin elimine un usuario (SOLO STAFF).
-    """
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
         
@@ -203,6 +146,4 @@ def usuario_delete(request, pk):
         messages.success(request, f'Usuario {email_borrado} eliminado.')
         return redirect('usuarios:usuario_list')
         
-    # Esta plantilla ya no se usará si SweetAlert está activo,
-    # pero es buena práctica mantenerla.
     return render(request, 'usuarios/usuario_confirm_delete.html', {'object': usuario})

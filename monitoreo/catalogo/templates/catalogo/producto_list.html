@@ -39,8 +39,14 @@
                                 
                                 <td>
                                     <a href="{% url 'catalogo:producto_update' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
-                                    <a href="{% url 'catalogo:producto_delete' producto.id %}" class="btn btn-danger btn-sm">Eliminar</a>
-                                </td>
+                                    
+                                    <form action="{% url 'catalogo:producto_delete' producto.id %}" method="post" class="d-inline form-delete">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                    </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -51,4 +57,39 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Seleccionamos todos los formularios con la clase 'form-delete'
+    const deleteForms = document.querySelectorAll('.form-delete');
+
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function (event) {
+            // Prevenimos que el formulario se envíe automáticamente
+            event.preventDefault(); 
+            
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esta acción!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, ¡eliminar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                // Si el usuario confirma, enviamos el formulario
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -23,11 +23,51 @@
                 <td>{{ usuario.Roles }}</td>
                 <td>
                     <a href="{% url 'usuarios:usuario_update' usuario.id %}" class="btn btn-warning btn-sm">Editar</a>
-                    <a href="{% url 'usuarios:usuario_delete' usuario.id %}" class="btn btn-danger btn-sm">Eliminar</a>
-                </td>
+                    
+                    <form action="{% url 'usuarios:usuario_delete' usuario.id %}" method="post" class="d-inline form-delete">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </form>
+                    </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Este script es idéntico al de productos,
+    // funciona para cualquier formulario con la clase 'form-delete'
+    const deleteForms = document.querySelectorAll('.form-delete');
+
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); 
+            
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esta acción!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, ¡eliminar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

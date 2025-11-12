@@ -1,40 +1,146 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Editar Usuario - {{ usuario_editado.email }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    
-    <h1>Editar Usuario: {{ usuario_editado.email }}</h1>
-    <a href="{% url 'usuarios:usuario_list' %}" class="btn btn-secondary mb-3">Volver a Usuarios</a>
-    
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Editando a: {{ usuario_editado.email }}</h2>
+                <a href="{% url 'usuarios:usuario_list' %}" class="btn btn-secondary">Volver a Usuarios</a>
+            </div>
+            
+            <form method="post" novalidate enctype="multipart/form-data">
                 {% csrf_token %}
-
-                {% if usuario_editado.avatar %}
-                <div class="mb-3">
-                    <label class="form-label">Avatar Actual:</label>
-                    <div>
-                        <img src="{{ usuario_editado.avatar.url }}" alt="Avatar" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Foto de Perfil</h5>
                     </div>
+                    <div class="card-body p-4 text-center">
+                        <div class="mb-3">
+                            {% if usuario_editado.avatar %}
+                                <img src="{{ usuario_editado.avatar.url }}" alt="Avatar" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                    <span class="text-muted">Sin Foto</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <label for="{{ form.avatar.id_for_label }}" class="form-label fw-bold">Actualizar Foto de Perfil</label>
+                        <input type="file" name="{{ form.avatar.name }}" id="{{ form.avatar.id_for_label }}" 
+                               class="form-control {% if form.avatar.errors %}is-invalid{% endif %}" style="max-width: 400px; margin: 0 auto;">
+                        {% for error in form.avatar.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text mt-2">Sube una imagen .jpg o .png (Máx 2MB)</div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Datos Personales</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-3">
+                            Correo de inicio de sesión: <strong>{{ usuario_editado.email }}</strong>
+                        </p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                                <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.first_name.value|default_if_none:'' }}">
+                                {% for error in form.first_name.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Apellido Paterno</label>
+                                <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.last_name.value|default_if_none:'' }}">
+                                {% for error in form.last_name.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.materno.id_for_label }}" class="form-label">Apellido Materno (Opcional)</label>
+                                <input type="text" name="{{ form.materno.name }}" id="{{ form.materno.id_for_label }}" 
+                                       class="form-control {% if form.materno.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.materno.value|default_if_none:'' }}">
+                                {% for error in form.materno.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.run.id_for_label }}" class="form-label">RUN</label>
+                                <input type="text" name="{{ form.run.name }}" id="{{ form.run.id_for_label }}" 
+                                       class="form-control {% if form.run.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.run.value|default_if_none:'' }}"
+                                       {% if form.run.is_disabled %}readonly{% endif %}>
+                                {% if form.run.is_disabled %}
+                                    <div class="form-text">El RUN no se puede modificar.</div>
+                                {% endif %}
+                                {% for error in form.run.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.fono.id_for_label }}" class="form-label">Teléfono (Opcional)</label>
+                                <input type="text" name="{{ form.fono.name }}" id="{{ form.fono.id_for_label }}" 
+                                       class="form-control {% if form.fono.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.fono.value|default_if_none:'' }}" placeholder="+569...">
+                                {% for error in form.fono.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-3">
+                    {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
                 </div>
                 {% endif %}
 
-                {{ form.as_p }}
-                
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            <p class="mb-0">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <button type="submit" class="btn btn-success mt-3">Guardar Cambios</button>
+                <div class="d-grid mt-4 mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
+                </div>
             </form>
+            
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                // El icono (success, error, warning) se toma de las etiquetas del mensaje
+                icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+                // El título es el texto del mensaje
+                title: '{{ message|escapejs }}',
+                // Se oculta después de 2.5 segundos
+                timer: 2500,
+                showConfirmButton: false
+            });
+        </script>
+    {% endfor %}
+{% endif %}
 {% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario - {{ usuario_editado.email }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <h1>Editar Usuario: {{ usuario_editado.email }}</h1>
+    <a href="{% url 'usuarios:usuario_list' %}" class="btn btn-secondary mb-3">Volver a Usuarios</a>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if usuario_editado.avatar %}
+                <div class="mb-3">
+                    <label class="form-label">Avatar Actual:</label>
+                    <div>
+                        <img src="{{ usuario_editado.avatar.url }}" alt="Avatar" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                    </div>
+                </div>
+                {% endif %}
+
+                {{ form.as_p }}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-success mt-3">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

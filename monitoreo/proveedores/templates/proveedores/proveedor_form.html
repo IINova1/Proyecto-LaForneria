@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} Proveedor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">{{ accion }} Proveedor</h2>
+
+            <form id="proveedorForm" method="POST" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">{{ accion }}</button>
+                    <a href="{% url 'proveedores:listar_proveedores' %}" class="btn btn-secondary">Volver</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Mensajes Django -->
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+                title: '{{ message|escapejs }}',
+                timer: 2500,
+                showConfirmButton: false
+            });
+        </script>
+    {% endfor %}
+{% endif %}
+
+<!-- Validaciones frontend -->
+<script>
+document.getElementById('proveedorForm').addEventListener('submit', function(e) {
+    e.preventDefault();  // prevenimos el submit por defecto
+    let rut = document.getElementById('id_rut').value.trim();
+    let nombre = document.getElementById('id_nombre_empresa').value.trim();
+    let email = document.getElementById('id_email').value.trim();
+    let telefono = document.getElementById('id_telefono').value.trim();
+
+    // Validar campos obligatorios
+    if (!rut || !nombre || !email) {
+        Swal.fire('Error', 'RUT, Nombre de la empresa y Email son obligatorios.', 'error');
+        return false;
+    }
+
+    // Validar formato de RUT básico
+    let rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
+    if (!rutRegex.test(rut)) {
+        Swal.fire('Error', 'Formato de RUT inválido. Ej: 12.345.678-9', 'error');
+        return false;
+    }
+
+    // Validar email básico
+    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        Swal.fire('Error', 'Email inválido.', 'error');
+        return false;
+    }
+
+    // Validar teléfono opcional si se ingresa
+    if (telefono) {
+        let telRegex = /^\+?\d[\d\s\-]{7,14}$/;
+        if (!telRegex.test(telefono)) {
+            Swal.fire('Error', 'Teléfono inválido. Ej: +56 9 1234 5678', 'error');
+            return false;
+        }
+    }
+
+    // Si pasa todas las validaciones, se envía el formulario
+    this.submit();
+});
+</script>
+{% endblock %}

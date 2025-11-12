@@ -21,7 +21,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-unsafe")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 # Forzamos DEBUG a True para el entorno de desarrollo
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
@@ -85,14 +85,18 @@ WSGI_APPLICATION = 'monitoreo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# monitoreo/monitoreo/settings.py
+
+# monitoreo/monitoreo/settings.py
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": os.getenv("DB_NAME", "forneria"),       # <-- Añadido fallback
+        "USER": os.getenv("DB_USER", "root"),           # <-- ¡CRÍTICO! Añadido fallback
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),  # <-- ¡CRÍTICO! Añadido fallback
+        "HOST": os.getenv("DB_HOST", "localhost"),      # <-- Añadido fallback
+        "PORT": os.getenv("DB_PORT", "3306"),
         "OPTIONS": {
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         }

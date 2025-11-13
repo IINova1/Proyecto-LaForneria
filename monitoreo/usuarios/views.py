@@ -1,5 +1,3 @@
-# Contenido COMPLETO para: Proyecto-LaForneria/monitoreo/usuarios/views.py
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -11,6 +9,11 @@ from .forms import (
     CustomRegisterForm, UserProfileForm, DireccionForm
 )
 from .models import Usuario, Direccion
+
+# --- IMPORTACIONES ADICIONALES PARA EXCEL Y HTTP ---
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 # --------------------
 # Vistas de Autenticación
@@ -79,14 +82,13 @@ def perfil(request):
         'user_form': user_form,
         'direccion_form': direccion_form
     }
-    # Renderiza la nueva plantilla que crearemos en el siguiente paso
+    # Renderiza la plantilla
     return render(request, 'usuarios/perfil.html', context)
 
 
 # ----------------------------------------
 # Vistas Protegidas (SOLO PARA ADMINS)
 # --- CRUD de Usuarios ---
-# (El resto de las vistas de admin (usuario_list, etc.) sigue igual)
 # ----------------------------------------
 
 @login_required
@@ -147,3 +149,45 @@ def usuario_delete(request, pk):
         return redirect('usuarios:usuario_list')
         
     return render(request, 'usuarios/usuario_confirm_delete.html', {'object': usuario})
+
+
+# -------------------------------
+# EXPORTAR USUARIOS A EXCEL (SOLO ADMIN)
+# -------------------------------
+@login_required
+def exportar_usuarios_excel(request):
+    if not request.user.is_staff:
+        messages.error(request, "No tienes permisos para exportar usuarios.")
+        return redirect('usuarios:usuario_list')
+
+    usuarios = Usuario.objects.all().order_by('id')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Usuarios"
+
+    columnas = ["ID", "Nombre", "Apellido", "Email", "Run", "Fono", "Rol", "Dirección"]
+    for col_num, titulo in enumerate(columnas, 1):
+        c = ws.cell(row=1, column=col_num)
+        c.value = titulo
+        c.font = openpyxl.styles.Font(bold=True)
+
+    for row_num, usuario in enumerate(usuarios, 2):
+        ws.cell(row=row_num, column=1).value = usuario.id
+        ws.cell(row=row_num, column=2).value = usuario.first_name
+        ws.cell(row=row_num, column=3).value = usuario.last_name
+        ws.cell(row=row_num, column=4).value = usuario.email
+        ws.cell(row=row_num, column=5).value = usuario.run
+        ws.cell(row=row_num, column=6).value = usuario.fono
+        ws.cell(row=row_num, column=7).value = usuario.Roles.nombre if usuario.Roles else ""
+        ws.cell(row=row_num, column=8).value = f"{usuario.Direccion.calle} {usuario.Direccion.numero}" if usuario.Direccion else ""
+
+    for col_num in range(1, len(columnas) + 1):
+        ws.column_dimensions[get_column_letter(col_num)].width = 20
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="usuarios.xlsx"'
+    wb.save(response)
+    return response

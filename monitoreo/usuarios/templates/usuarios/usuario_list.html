@@ -5,7 +5,14 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">Lista de Usuarios</h2>
-    <a href="{% url 'usuarios:usuario_create' %}" class="btn btn-success mb-3">Agregar Usuario</a>
+    
+    <div class="d-flex gap-2 mb-3">
+        <a href="{% url 'usuarios:usuario_create' %}" class="btn btn-success">Agregar Usuario</a>
+        <a href="{% url 'usuarios:exportar_usuarios_excel' %}" id="btn-exportar-excel" class="btn btn-primary">
+            Exportar a Excel
+        </a>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -30,7 +37,7 @@
                             Eliminar
                         </button>
                     </form>
-                    </td>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -44,14 +51,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Este script es idéntico al de productos,
-    // funciona para cualquier formulario con la clase 'form-delete'
+    // --- Confirmación de eliminar ---
     const deleteForms = document.querySelectorAll('.form-delete');
-
     deleteForms.forEach(form => {
         form.addEventListener('submit', function (event) {
             event.preventDefault(); 
-            
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: "¡No podrás revertir esta acción!",
@@ -68,6 +72,25 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // --- Alerta de exportar a Excel ---
+    const btnExport = document.getElementById("btn-exportar-excel");
+    if (btnExport) {
+        btnExport.addEventListener("click", (event) => {
+            event.preventDefault(); // evita redirección inmediata
+
+            Swal.fire({
+                title: "Generando archivo...",
+                text: "Por favor espera unos segundos mientras preparamos el Excel.",
+                icon: "info",
+                showConfirmButton: false,
+                timer: 2000,
+                didClose: () => {
+                    window.location.href = btnExport.href; // descarga tras el mensaje
+                }
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

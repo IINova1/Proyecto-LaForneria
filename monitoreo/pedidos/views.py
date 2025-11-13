@@ -12,7 +12,6 @@ from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 
-
 # --------------------
 # Vistas de la Tienda (Públicas)
 # --------------------
@@ -151,6 +150,7 @@ def realizar_pedido(request):
 
     request.session['carrito'] = {}
     messages.success(request, "¡Pedido realizado con éxito!")
+    # SweetAlert integrado al template via mensaje de Django
     return redirect('pedidos:pedido_exitoso')
 
 
@@ -289,4 +289,3 @@ def pedido_detail(request, pk):
         detalle.subtotal = detalle.cantidad * detalle.precio
 
     return render(request, 'pedidos/pedido_detail.html', {'pedido': pedido})
-

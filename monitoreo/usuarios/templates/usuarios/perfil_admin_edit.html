@@ -12,9 +12,10 @@
                 <a href="{% url 'usuarios:usuario_list' %}" class="btn btn-secondary">Volver a Usuarios</a>
             </div>
             
-            <form method="post" novalidate enctype="multipart/form-data">
+            <form id="adminEditForm" method="post" novalidate enctype="multipart/form-data">
                 {% csrf_token %}
                 
+                <!-- FOTO DE PERFIL -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">Foto de Perfil</h5>
@@ -39,6 +40,7 @@
                     </div>
                 </div>
                 
+                <!-- DATOS PERSONALES -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">Datos Personales</h5>
@@ -49,59 +51,15 @@
                         </p>
                         
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">Nombre</label>
-                                <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
-                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.first_name.value|default_if_none:'' }}">
-                                {% for error in form.first_name.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Apellido Paterno</label>
-                                <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
-                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.last_name.value|default_if_none:'' }}">
-                                {% for error in form.last_name.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.materno.id_for_label }}" class="form-label">Apellido Materno (Opcional)</label>
-                                <input type="text" name="{{ form.materno.name }}" id="{{ form.materno.id_for_label }}" 
-                                       class="form-control {% if form.materno.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.materno.value|default_if_none:'' }}">
-                                {% for error in form.materno.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.run.id_for_label }}" class="form-label">RUN</label>
-                                <input type="text" name="{{ form.run.name }}" id="{{ form.run.id_for_label }}" 
-                                       class="form-control {% if form.run.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.run.value|default_if_none:'' }}"
-                                       {% if form.run.is_disabled %}readonly{% endif %}>
-                                {% if form.run.is_disabled %}
-                                    <div class="form-text">El RUN no se puede modificar.</div>
-                                {% endif %}
-                                {% for error in form.run.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.fono.id_for_label }}" class="form-label">Teléfono (Opcional)</label>
-                                <input type="text" name="{{ form.fono.name }}" id="{{ form.fono.id_for_label }}" 
-                                       class="form-control {% if form.fono.errors %}is-invalid{% endif %}" 
-                                       value="{{ form.fono.value|default_if_none:'' }}" placeholder="+569...">
-                                {% for error in form.fono.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
+                            {% for field in form.visible_fields %}
+                                <div class="col-md-6">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div> 
@@ -128,19 +86,57 @@
 {% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Mensajes Django -->
 {% if messages %}
     {% for message in messages %}
         <script>
             Swal.fire({
-                // El icono (success, error, warning) se toma de las etiquetas del mensaje
                 icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
-                // El título es el texto del mensaje
                 title: '{{ message|escapejs }}',
-                // Se oculta después de 2.5 segundos
                 timer: 2500,
                 showConfirmButton: false
             });
         </script>
     {% endfor %}
 {% endif %}
+
+<!-- Validaciones front-end -->
+<script>
+document.getElementById('adminEditForm').addEventListener('submit', function (e) {
+    const nombre = document.getElementById('id_first_name')?.value.trim();
+    const apellido = document.getElementById('id_last_name')?.value.trim();
+    const run = document.getElementById('id_run')?.value.trim();
+    const fono = document.getElementById('id_fono')?.value.trim();
+
+    if (!nombre || !apellido || !run) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Campos obligatorios',
+            text: 'Por favor completa los campos de nombre, apellido y RUN.',
+        });
+        return false;
+    }
+
+    const runRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
+    if (!runRegex.test(run)) {
+        e.preventDefault();
+        Swal.fire('Error', 'Formato de RUN inválido. Ejemplo: 12.345.678-9', 'error');
+        return false;
+    }
+
+    if (fono && !/^\+?\d[\d\s\-]{7,14}$/.test(fono)) {
+        e.preventDefault();
+        Swal.fire('Error', 'Formato de teléfono inválido. Ejemplo: +56 9 1234 5678', 'error');
+        return false;
+    }
+
+    const avatar = document.getElementById('id_avatar')?.files[0];
+    if (avatar && avatar.size > 2 * 1024 * 1024) {
+        e.preventDefault();
+        Swal.fire('Error', 'La imagen no debe superar los 2MB.', 'error');
+        return false;
+    }
+});
+</script>
 {% endblock %}

@@ -46,7 +46,7 @@ class Usuario(AbstractUser):
     username = None
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('email address'), unique=True, max_length=191)
     materno = models.CharField(max_length=100, blank=True, null=True)
     run = models.CharField(unique=True, max_length=10)
     fono = models.IntegerField(blank=True, null=True)

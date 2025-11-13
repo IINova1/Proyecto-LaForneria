@@ -1,17 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Formulario de Categoría{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ form.instance.pk|yesno:"Editar Categoría,Agregar Categoría" }}</h1>
-    <a href="{% url 'catalogo:categoria_list' %}" class="btn btn-secondary mb-3">Volver</a>
-    <div class="card">
+    <h1>{{ form.instance.pk|yesno:"Editar Categoría,Crear Categoría" }}</h1>
+    <div class="card shadow-sm">
         <div class="card-body">
-            <form method="POST">
+            <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-success">Guardar</button>
+                <button type="submit" class="btn btn-success">
+                    {{ form.instance.pk|yesno:"Actualizar,Registrar" }}
+                </button>
+                <a href="{% url 'catalogo:categoria_list' %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                title: "{{ message|escapejs }}",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        {% endfor %}
+    {% endif %}
+});
+</script>
 {% endblock %}

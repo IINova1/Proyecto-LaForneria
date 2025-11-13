@@ -10,6 +10,7 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('pedido/realizar/', views.realizar_pedido, name='realizar_pedido'),
     path('pedido/exitoso/', views.pedido_exitoso, name='pedido_exitoso'),
+    path('exportar_excel/', views.exportar_pedidos_excel, name='exportar_pedidos_excel'),
     
     # --- URLs de Admin para Pedidos ---
     path('pedidos/', views.pedido_list, name='pedido_list'),

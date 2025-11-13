@@ -1,17 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Formulario de Producto{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ form.instance.pk|yesno:"Editar Producto,Agregar Producto" }}</h1>
-    <a href="{% url 'catalogo:producto_list' %}" class="btn btn-secondary mb-3">Volver a Productos</a>
+    <h1>{{ form.instance.pk|yesno:"Editar Producto,Crear Producto" }}</h1>
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-success mt-3">Guardar</button>
+                <button type="submit" class="btn btn-success">
+                    {{ form.instance.pk|yesno:"Actualizar,Registrar" }}
+                </button>
+                <a href="{% url 'catalogo:producto_list' %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                title: "{{ message|escapejs }}",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        {% endfor %}
+    {% endif %}
+});
+</script>
 {% endblock %}

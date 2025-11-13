@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-    /* --- Estilo personalizado --- */
     body {
         background: linear-gradient(135deg, #fff8f0 0%, #f3e5ab 100%);
         font-family: 'Poppins', sans-serif;
@@ -26,7 +25,7 @@
     .card-title {
         font-weight: 700;
         font-size: 1.8rem;
-        color: #a0522d; /* tono cálido tipo pan horneado */
+        color: #a0522d;
     }
 
     .form-label {
@@ -60,16 +59,6 @@
         transform: scale(1.03);
     }
 
-    a {
-        text-decoration: none;
-        color: #a0522d;
-        font-weight: 500;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
     .invalid-feedback {
         font-size: 0.9rem;
     }
@@ -94,7 +83,7 @@
                         Únete a <strong>La Fornería</strong> y disfruta de nuestros productos artesanales recién horneados 🍞
                     </p>
 
-                    <form method="post" enctype="multipart/form-data" novalidate>
+                    <form id="registerForm" method="post" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
                         {% for field in form %}
                             <div class="mb-3">
@@ -110,11 +99,11 @@
                         {% endfor %}
 
                         {% if form.non_field_errors %}
-                        <div class="alert alert-danger mt-3">
-                            {% for error in form.non_field_errors %}
-                                <p class="mb-0">{{ error }}</p>
-                            {% endfor %}
-                        </div>
+                            <div class="alert alert-danger mt-3">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
                         {% endif %}
 
                         <div class="d-grid mt-4">
@@ -135,4 +124,58 @@
         </div>
     </div>
 </div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Mostrar mensajes Django -->
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+                title: '{{ message|escapejs }}',
+                timer: 2500,
+                showConfirmButton: false
+            });
+        </script>
+    {% endfor %}
+{% endif %}
+
+<!-- Validaciones front-end -->
+<script>
+document.getElementById('registerForm').addEventListener('submit', function (e) {
+    const email = document.getElementById('id_email')?.value.trim();
+    const run = document.getElementById('id_run')?.value.trim();
+    const nombre = document.getElementById('id_first_name')?.value.trim();
+    const apellido = document.getElementById('id_last_name')?.value.trim();
+
+    // Validaciones básicas antes del envío
+    if (!nombre || !apellido || !email || !run) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Campos obligatorios',
+            text: 'Por favor completa todos los campos requeridos.',
+        });
+        return false;
+    }
+
+    // Validar email
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(email)) {
+        e.preventDefault();
+        Swal.fire('Error', 'El correo electrónico no es válido.', 'error');
+        return false;
+    }
+
+    // Validar formato RUN chileno
+    const runRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
+    if (!runRegex.test(run)) {
+        e.preventDefault();
+        Swal.fire('Error', 'Formato de RUN inválido. Ejemplo: 12.345.678-9', 'error');
+        return false;
+    }
+});
+</script>
 {% endblock %}

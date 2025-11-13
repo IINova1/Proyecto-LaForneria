@@ -2,13 +2,16 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
+from django.http import HttpResponse
 
-# --- ¡Importaciones Corregidas! ---
+import openpyxl
+from openpyxl.utils import get_column_letter
+
 from .models import Categoria, Producto
 from .forms import ProductoForm, CategoriaForm
 
 # ----------------------------------------
-# Vistas Protegidas (SOLO PARA ADMINS)
+# VISTAS CRUD
 # ----------------------------------------
 
 # --- CRUD de Categorías ---
@@ -16,9 +19,19 @@ from .forms import ProductoForm, CategoriaForm
 def categoria_list(request):
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
+
+    nombre_filtro = request.GET.get('nombre', '')
     categorias = Categoria.objects.all()
-    # --- RUTA DE PLANTILLA CORREGIDA ---
-    return render(request, 'catalogo/categoria_list.html', {'categorias': categorias})
+    if nombre_filtro:
+        categorias = categorias.filter(nombre__icontains=nombre_filtro)
+
+    # PAGINACIÓN
+    from django.core.paginator import Paginator
+    paginator = Paginator(categorias, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'catalogo/categoria_list.html', {'page_obj': page_obj, 'nombre_filtro': nombre_filtro})
 
 @login_required
 def categoria_create(request):
@@ -29,11 +42,9 @@ def categoria_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Categoría creada exitosamente.')
-            # --- REDIRECCIÓN CORREGIDA ---
             return redirect('catalogo:categoria_list')
     else:
         form = CategoriaForm()
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/categoria_form.html', {'form': form})
 
 @login_required
@@ -46,11 +57,9 @@ def categoria_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Categoría actualizada exitosamente.')
-            # --- REDIRECCIÓN CORREGIDA ---
             return redirect('catalogo:categoria_list')
     else:
         form = CategoriaForm(instance=categoria)
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/categoria_form.html', {'form': form})
 
 @login_required
@@ -62,26 +71,33 @@ def categoria_delete(request, pk):
         nombre_cat = categoria.nombre
         categoria.delete()
         messages.success(request, f'Categoría {nombre_cat} eliminada.')
-        # --- REDIRECCIÓN CORREGIDA ---
         return redirect('catalogo:categoria_list')
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/categoria_confirm_delete.html', {'object': categoria})
+
 
 # --- CRUD de Productos ---
 @login_required
 def producto_list(request):
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
-    productos = Producto.objects.all()
-    # --- RUTA DE PLANTILLA CORREGIDA ---
-    return render(request, 'catalogo/producto_list.html', {'productos': productos})
+
+    nombre_filtro = request.GET.get('nombre', '')
+    productos = Producto.objects.all().select_related('Categorias')
+    if nombre_filtro:
+        productos = productos.filter(nombre__icontains=nombre_filtro)
+
+    from django.core.paginator import Paginator
+    paginator = Paginator(productos, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'catalogo/producto_list.html', {'page_obj': page_obj, 'nombre_filtro': nombre_filtro})
 
 @login_required
 def producto_detail(request, pk):
     if not request.user.is_staff:
         return redirect('pedidos:ver_productos')
     producto = get_object_or_404(Producto, pk=pk)
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/producto_detail.html', {'producto': producto})
 
 @login_required
@@ -95,11 +111,9 @@ def producto_create(request):
             producto.creado = timezone.now()
             producto.save()
             messages.success(request, 'Producto creado exitosamente.')
-            # --- REDIRECCIÓN CORREGIDA ---
             return redirect('catalogo:producto_list')
     else:
         form = ProductoForm()
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/producto_form.html', {'form': form})
 
 @login_required
@@ -114,11 +128,9 @@ def producto_update(request, pk):
             producto_actualizado.modificado = timezone.now()
             producto_actualizado.save()
             messages.success(request, 'Producto actualizado exitosamente.')
-            # --- REDIRECCIÓN CORREGIDA ---
             return redirect('catalogo:producto_list')
     else:
         form = ProductoForm(instance=producto)
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/producto_form.html', {'form': form})
 
 @login_required
@@ -130,7 +142,87 @@ def producto_delete(request, pk):
         nombre_prod = producto.nombre
         producto.delete()
         messages.success(request, f'Producto {nombre_prod} eliminado.')
-        # --- REDIRECCIÓN CORREGIDA ---
         return redirect('catalogo:producto_list')
-    # --- RUTA DE PLANTILLA CORREGIDA ---
     return render(request, 'catalogo/producto_confirm_delete.html', {'object': producto})
+
+
+# ----------------------------------------
+# EXPORTACIÓN A EXCEL
+# ----------------------------------------
+@login_required
+def producto_export_excel(request):
+    if not request.user.is_staff:
+        return redirect('pedidos:ver_productos')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+
+    headers = [
+        "ID", "Nombre", "Descripción", "Marca", "Precio", 
+        "Caducidad", "Elaboración", "Tipo", "Categoría", 
+        "Stock Actual", "Stock Mínimo", "Stock Máximo", 
+        "Presentación", "Formato"
+    ]
+    ws.append(headers)
+
+    productos = Producto.objects.all().select_related('Categorias')
+    for p in productos:
+        ws.append([
+            p.id,
+            p.nombre,
+            p.descripcion or "",
+            p.marca or "",
+            p.precio or 0,
+            p.caducidad.strftime("%Y-%m-%d") if p.caducidad else "",
+            p.elaboracion.strftime("%Y-%m-%d") if p.elaboracion else "",
+            p.tipo,
+            p.Categorias.nombre if p.Categorias else "",
+            p.stock_actual or 0,
+            p.stock_minimo or 0,
+            p.stock_maximo or 0,
+            p.presentacion or "",
+            p.formato or "",
+        ])
+
+    for i, col in enumerate(ws.columns, 1):
+        max_length = max(len(str(cell.value)) for cell in col)
+        ws.column_dimensions[get_column_letter(i)].width = max_length + 2
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response['Content-Disposition'] = 'attachment; filename=productos.xlsx'
+    wb.save(response)
+    return response
+
+@login_required
+def categoria_export_excel(request):
+    if not request.user.is_staff:
+        return redirect('pedidos:ver_productos')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Categorías"
+
+    headers = ["ID", "Nombre", "Descripción"]
+    ws.append(headers)
+
+    categorias = Categoria.objects.all()
+    for c in categorias:
+        ws.append([
+            c.id,
+            c.nombre,
+            c.descripcion or "",
+        ])
+
+    for i, col in enumerate(ws.columns, 1):
+        max_length = max(len(str(cell.value)) for cell in col)
+        ws.column_dimensions[get_column_letter(i)].width = max_length + 2
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response['Content-Disposition'] = 'attachment; filename=categorias.xlsx'
+    wb.save(response)
+    return response

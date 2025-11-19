@@ -2,9 +2,10 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        /* Estilos para las nuevas tarjetas de estadísticas */
+        /* Estilos para las tarjetas de estadísticas */
         .stat-card {
             border: none;
             border-left: 5px solid var(--bs-primary);
@@ -30,6 +31,13 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             color: var(--bs-primary);
+        }
+
+        /* Estilo para el contenedor del gráfico */
+        .chart-container {
+            position: relative; 
+            height: 300px; 
+            width: 100%;
         }
     </style>
 {% endblock %}
@@ -97,6 +105,21 @@
         </div>
     </div>
 
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4 ps-4">
+                    <h4 class="mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Evolución de Ventas (Últimos 30 días)</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="chart-container">
+                        <canvas id="ventasChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h2 class="h4 mb-3">Acciones Rápidas</h2>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
         <div class="col">
@@ -153,4 +176,87 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Contexto del Canvas
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        
+        // Obtenemos los datos inyectados desde la vista de Django
+        // Usamos el filtro |safe para que Django no escape las comillas del JSON
+        const fechas = {{ fechas_grafico|safe }};
+        const montos = {{ montos_grafico|safe }};
+
+        // Crear un gradiente bonito para el relleno
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(13, 110, 253, 0.5)'); // Color primario transparente
+        gradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)'); // Transparente al final
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: montos,
+                    borderColor: '#0d6efd', // Bootstrap Primary Color
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0d6efd',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true, // Rellena el área bajo la curva
+                    tension: 0.3 // Hace la línea curva (suavizada)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Se adapta al contenedor CSS
+                plugins: {
+                    legend: {
+                        display: false // Ocultamos la leyenda si es solo una métrica
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // Formatear a moneda CLP (Peso Chileno)
+                                    label += new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            borderDash: [2, 4], // Líneas punteadas en el fondo
+                            color: '#e9ecef'
+                        },
+                        ticks: {
+                            // Agregar signo peso al eje Y
+                            callback: function(value) {
+                                return '$' + value; 
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false // Ocultar grilla vertical para un look más limpio
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

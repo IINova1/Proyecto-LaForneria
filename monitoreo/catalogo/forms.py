@@ -11,9 +11,11 @@ class ProductoForm(forms.ModelForm):
             'stock_actual', 'stock_minimo', 'stock_maximo', 
             'presentacion', 'formato', 'imagen'
         ]
+        # --- CORRECCIÓN APLICADA AQUÍ ---
         widgets = {
-            'caducidad': forms.DateInput(attrs={'type': 'date'}),
-            'elaboracion': forms.DateInput(attrs={'type': 'date'}),
+            # Se agrega format='%Y-%m-%d' para que el input date de HTML5 cargue el valor correctamente al editar
+            'caducidad': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'elaboracion': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
 
     def clean_nombre(self):

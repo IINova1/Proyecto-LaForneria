@@ -23,10 +23,11 @@ from openpyxl.utils import get_column_letter
 
 def register(request):
     """
-    Vista para el registro de nuevos usuarios (Ahora simplificada).
+    Vista para el registro de nuevos usuarios.
     """
     if request.method == 'POST':
-        form = CustomRegisterForm(request.POST)
+        # SE AGREGA request.FILES AQUÍ PARA QUE LA IMAGEN SE GUARDE
+        form = CustomRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             login(request, user)

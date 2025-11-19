@@ -1,14 +1,205 @@
 {% extends 'base.html' %}
-{% block title %}Inicio{% endblock %}
+{% load static %}
+
+{% block title %}Inicio - La Fornería{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* --- Estilos Personalizados para el Inicio --- */
+    
+    /* Paleta de colores inspirada en el PDF (Pan, Café, Moderno) */
+    :root {
+        --color-primario: #c07949; /* Tono pan dorado/terracota */
+        --color-secundario: #2c2c2c; /* Gris oscuro/Negro industrial */
+        --color-crema: #f9f7f2; /* Fondo suave */
+    }
+
+    body {
+        background-color: var(--color-crema);
+    }
+
+    /* HERO SECTION (Portada) */
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{% static "img/bakery_hero.jpg" %}');
+        /* Si no tienes imagen, usa un gradiente elegante */
+        background: linear-gradient(135deg, #434343 0%, #000000 100%);
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        border-radius: 0 0 20px 20px;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif; /* Fuente elegante si se carga, sino serif */
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        letter-spacing: 1px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.4rem;
+        font-weight: 300;
+        margin-bottom: 2rem;
+        color: #f0f0f0;
+    }
+
+    /* TARJETAS DE CATEGORÍAS */
+    .category-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: white;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .icon-box {
+        background-color: var(--color-crema);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+        font-size: 2rem;
+        color: var(--color-primario);
+    }
+
+    /* SECCIÓN DE HISTORIA */
+    .story-section {
+        background-color: white;
+        border-radius: 20px;
+        padding: 3rem;
+        margin-top: 3rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-left: 5px solid var(--color-primario);
+    }
+
+    .btn-cta {
+        background-color: var(--color-primario);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: none;
+        transition: all 0.3s;
+    }
+
+    .btn-cta:hover {
+        background-color: #a05e32;
+        color: white;
+        transform: scale(1.05);
+    }
+
+    /* CONTADOR DE VISITAS */
+    .visit-counter {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 4rem;
+        border-top: 1px solid #dee2e6;
+        padding-top: 1rem;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
-        <div class="container-fluid py-5">
-            <h1 class="display-5 fw-bold">Bienvenido al sistema de gestión de La Fornería</h1>
-            <p class="col-md-8 fs-4">Usa el menú superior para navegar entre las distintas secciones del sistema.</p>
+<div class="container-fluid px-0">
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="hero-title">La Fornería</h1>
+            <p class="hero-subtitle">Cafetería • Panadería • Pastelería • Emporio</p>
+            <p class="lead mb-4">"Donde la cocina y el horno son protagonistas de una experiencia auténtica"</p>
             
-            <p class="text-muted mt-3">Has visitado esta página {{ visitas }}.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-cta shadow">
+                    <i class="bi bi-shop me-2"></i> Ver Tienda
+                </a>
+            {% else %}
+                <a href="{% url 'usuarios:login' %}" class="btn btn-cta shadow">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar Sesión
+                </a>
+            {% endif %}
         </div>
     </div>
+</div>
+
+<div class="container mb-5">
+    
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="card category-card p-4">
+                <div class="icon-box">
+                    <i class="bi bi-cup-hot-fill"></i> </div>
+                <h3 class="h4 fw-bold">Calidez Artesanal</h3>
+                <p class="text-muted">
+                    Inspirados en el término italiano <em>forno</em>. Ofrecemos productos frescos y un ambiente acogedor y familiar.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card category-card p-4">
+                <div class="icon-box">
+                    <i class="bi bi-heart-pulse-fill"></i> </div>
+                <h3 class="h4 fw-bold">Conciencia Alimentaria</h3>
+                <p class="text-muted">
+                    Disfruta de opciones deliciosas, saludables, sin gluten, sin azúcar añadida y alternativas veganas.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card category-card p-4">
+                <div class="icon-box">
+                    <i class="bi bi-basket2-fill"></i> </div>
+                <h3 class="h4 fw-bold">Emporio Gourmet</h3>
+                <p class="text-muted">
+                    Una fina selección de pastas, mariscos, charcutería local y productos premium listos para llevar.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="story-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-3 fw-bold text-dark">Nuestra Historia</h2>
+                        <p class="text-muted">
+                            Fundada en mayo de 2024 en La Serena, <strong>La Fornería</strong> nace de la pasión compartida por la cocina y las raíces italianas de Javier y Loretta.
+                        </p>
+                        <p class="text-muted">
+                            Lo que comenzó como un encuentro casual en vacaciones, se transformó en un proyecto con identidad propia que combina tradición, calidad y un profundo respeto por el buen comer. Más que una tienda, somos un espacio de encuentro.
+                        </p>
+                        <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-outline-dark mt-2">
+                            Descubre nuestros productos
+                        </a>
+                    </div>
+                    <div class="col-md-4 text-center d-none d-md-block">
+                        <i class="bi bi-geo-alt-fill text-danger" style="font-size: 4rem;"></i>
+                        <p class="fw-bold mt-2">Los Arrayanes 901,<br>La Serena</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center visit-counter">
+        <p><small>Has visitado esta página <strong>{{ visitas }}</strong> veces.</small></p>
+        <p class="mb-0">&copy; {% now "Y" %} La Fornería - Tienda de Especialidad.</p>
+    </div>
+
 </div>
 {% endblock %}

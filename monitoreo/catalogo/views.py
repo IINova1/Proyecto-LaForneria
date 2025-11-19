@@ -9,17 +9,15 @@ from openpyxl.utils import get_column_letter
 
 from .models import Categoria, Producto
 from .forms import ProductoForm, CategoriaForm
-
+from django.contrib.auth.decorators import login_required, permission_required
 # ----------------------------------------
 # VISTAS CRUD
 # ----------------------------------------
 
 # --- CRUD de Categorías ---
 @login_required
+@permission_required('catalogo.view_categoria', raise_exception=True)
 def categoria_list(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     nombre_filtro = request.GET.get('nombre', '')
     categorias = Categoria.objects.all()
     if nombre_filtro:
@@ -34,9 +32,8 @@ def categoria_list(request):
     return render(request, 'catalogo/categoria_list.html', {'page_obj': page_obj, 'nombre_filtro': nombre_filtro})
 
 @login_required
+@permission_required('catalogo.add_categoria', raise_exception=True)
 def categoria_create(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
         if form.is_valid():
@@ -48,9 +45,8 @@ def categoria_create(request):
     return render(request, 'catalogo/categoria_form.html', {'form': form})
 
 @login_required
+@permission_required('catalogo.change_categoria', raise_exception=True)
 def categoria_update(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
         form = CategoriaForm(request.POST, instance=categoria)
@@ -63,9 +59,8 @@ def categoria_update(request, pk):
     return render(request, 'catalogo/categoria_form.html', {'form': form})
 
 @login_required
+@permission_required('catalogo.delete_categoria', raise_exception=True)
 def categoria_delete(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
         nombre_cat = categoria.nombre
@@ -77,10 +72,8 @@ def categoria_delete(request, pk):
 
 # --- CRUD de Productos ---
 @login_required
+@permission_required('catalogo.view_producto', raise_exception=True)
 def producto_list(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     nombre_filtro = request.GET.get('nombre', '')
     productos = Producto.objects.all().select_related('Categorias')
     if nombre_filtro:
@@ -94,16 +87,14 @@ def producto_list(request):
     return render(request, 'catalogo/producto_list.html', {'page_obj': page_obj, 'nombre_filtro': nombre_filtro})
 
 @login_required
+@permission_required('catalogo.view_producto', raise_exception=True)
 def producto_detail(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     producto = get_object_or_404(Producto, pk=pk)
     return render(request, 'catalogo/producto_detail.html', {'producto': producto})
 
 @login_required
+@permission_required('catalogo.add_producto', raise_exception=True)
 def producto_create(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -117,9 +108,8 @@ def producto_create(request):
     return render(request, 'catalogo/producto_form.html', {'form': form})
 
 @login_required
+@permission_required('catalogo.change_producto', raise_exception=True)
 def producto_update(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     producto = get_object_or_404(Producto, pk=pk)
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
@@ -134,9 +124,8 @@ def producto_update(request, pk):
     return render(request, 'catalogo/producto_form.html', {'form': form})
 
 @login_required
+@permission_required('catalogo.delete_producto', raise_exception=True)
 def producto_delete(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
     producto = get_object_or_404(Producto, pk=pk)
     if request.method == 'POST':
         nombre_prod = producto.nombre
@@ -150,10 +139,8 @@ def producto_delete(request, pk):
 # EXPORTACIÓN A EXCEL
 # ----------------------------------------
 @login_required
+@permission_required('catalogo.view_producto', raise_exception=True)
 def producto_export_excel(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Productos"
@@ -197,10 +184,8 @@ def producto_export_excel(request):
     return response
 
 @login_required
+@permission_required('catalogo.view_categoria', raise_exception=True)
 def categoria_export_excel(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Categorías"

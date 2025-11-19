@@ -7,11 +7,17 @@ class UsuarioAdmin(admin.ModelAdmin):
     list_display = ('email', 'first_name', 'last_name', 'Roles', 'is_staff', 'is_active')
     list_filter = ('is_staff', 'is_active', 'Roles')
     search_fields = ('email', 'first_name', 'last_name', 'run')
+    
+    # --- ¡ESTA ES LA LÍNEA QUE AÑADIMOS! ---
+    # Esto habilita la interfaz de "dos cajas" con flechas
+    filter_horizontal = ('groups', 'user_permissions')
+    
     ordering = ('email',)
     list_select_related = ('Roles', 'Direccion')
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Información Personal', {'fields': ('first_name', 'last_name', 'materno', 'run', 'fono', 'Direccion')}),
+        # Modificamos este fieldset para que 'groups' y 'user_permissions' se muestren correctamente
         ('Permisos y Rol', {'fields': ('Roles', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Fechas Importantes', {'fields': ('last_login', 'date_joined')}),
     )

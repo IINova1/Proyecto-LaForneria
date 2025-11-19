@@ -13,6 +13,8 @@ urlpatterns = [
     path('crear/', views.usuario_create, name='usuario_create'),
     path('<int:pk>/editar/', views.usuario_update, name='usuario_update'),
     path('<int:pk>/eliminar/', views.usuario_delete, name='usuario_delete'),
+    path('exportar-excel/', views.exportar_usuarios_excel, name='exportar_usuarios_excel'),	
+
 
     # --- Autenticación de Usuarios ---
     path('login/', auth_views.LoginView.as_view(

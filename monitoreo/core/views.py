@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
-
+from django.contrib.auth.decorators import login_required, permission_required
 # --- ¡IMPORTACIONES CORREGIDAS! ---
 from usuarios.models import Usuario
 from catalogo.models import Producto
@@ -30,13 +30,8 @@ def inicio(request):
 # ----------------------------------------
 
 @login_required
-def dashboard(request):
-    """
-    Vista para el panel de administración.
-    """
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-    
+@permission_required('catalogo.view_producto', raise_exception=True)
+def dashboard(request): 
     # Consultamos los modelos de sus apps correspondientes
     total_usuarios = Usuario.objects.count()
     total_productos = Producto.objects.count()

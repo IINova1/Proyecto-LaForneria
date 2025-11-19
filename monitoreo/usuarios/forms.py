@@ -29,11 +29,13 @@ class CustomRegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 12.345.678-9'})
     )
 
-    fono = forms.CharField(
-        label="Teléfono",
+    fono = forms.IntegerField(
+        label="Teléfono (solo números)",
         required=False,
-        validators=[RegexValidator(r'^\+?\d[\d\s\-]{7,14}$', 'Formato de teléfono inválido.')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+56 9 1234 5678'})
+        # Usamos NumberInput y ajustamos el placeholder
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 912345678'}),
+        # Añadimos un texto de ayuda
+        help_text="Ingresa solo el número, sin el +56 o espacios."
     )
 
     class Meta(UserCreationForm.Meta):

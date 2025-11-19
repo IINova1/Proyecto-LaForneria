@@ -6,12 +6,11 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from .models import Proveedor
 from .forms import ProveedorForm
-
+from django.contrib.auth.decorators import login_required, permission_required
 
 @login_required
+@permission_required('proveedores.view_proveedor', raise_exception=True)
 def listar_proveedores(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
 
     # --- Búsqueda y filtro ---
     query = request.GET.get('q', '').strip()
@@ -51,10 +50,8 @@ def listar_proveedores(request):
 
 
 @login_required
+@permission_required('proveedores.add_proveedor', raise_exception=True) # <-- Revisa si el usuario está en el grupo "Editor" o "Administrador"
 def crear_proveedor(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     # --- Detectar rubro preseleccionado desde el filtro ---
     rubro_inicial = request.GET.get('rubro', '').strip()
 
@@ -77,10 +74,8 @@ def crear_proveedor(request):
 
 
 @login_required
+@permission_required('proveedores.change_proveedor', raise_exception=True)
 def editar_proveedor(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     proveedor = get_object_or_404(Proveedor, pk=pk)
     if request.method == 'POST':
         form = ProveedorForm(request.POST, instance=proveedor)
@@ -100,10 +95,8 @@ def editar_proveedor(request, pk):
 
 
 @login_required
+@permission_required('proveedores.delete_proveedor', raise_exception=True)
 def eliminar_proveedor(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
     proveedor = get_object_or_404(Proveedor, pk=pk)
     try:
         proveedor.delete()

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Página No Encontrada (Error 404){% endblock %}
+{% block title %}Acceso Denegado (Error 403){% endblock %}
 
 {% block content %}
 <style>
@@ -14,7 +14,7 @@
     .error-container h1 {
         font-size: 6rem;
         font-weight: 700;
-        color: #dc3545;
+        color: #dc3545; /* Rojo de peligro */
         margin-bottom: 0;
         line-height: 1;
     }
@@ -37,14 +37,16 @@
 
 <div class="container">
     <div class="error-container">
-        <h1>404</h1>
-        <h2>Página No Encontrada</h2>
-        <p>Lo sentimos, la página que buscas no existe o ha sido movida.</p>
+        <h1>403</h1>
+        <h2>Acceso Denegado</h2>
+        <p>Lo sentimos, no tienes los permisos necesarios para ver esta página.</p>
         
-        {% if user.is_staff %}
-            <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Volver al Dashboard</a>
-        {% elif user.is_authenticated %}
-            <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-primary">Volver a la Tienda</a>
+        {% if user.is_authenticated %}
+            {% if perms.catalogo.view_producto %}
+                <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Volver al Dashboard</a>
+            {% else %}
+                 <a href="{% url 'pedidos:ver_productos' %}" class="btn btn-primary">Volver a la Tienda</a>
+            {% endif %}
         {% else %}
             <a href="{% url 'core:inicio' %}" class="btn btn-primary">Volver al Inicio</a>
         {% endif %}

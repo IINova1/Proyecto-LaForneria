@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+# --- ¡IMPORTACIÓN AÑADIDA! ---
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -14,6 +15,7 @@ from openpyxl.utils import get_column_letter
 
 # --------------------
 # Vistas de la Tienda (Públicas)
+# (Estas vistas no cambian, ya que son para clientes)
 # --------------------
 
 def ver_productos(request):
@@ -160,22 +162,21 @@ def pedido_exitoso(request):
 
 # -------------------------------
 # CRUD de Clientes (solo Admins)
+# (AQUÍ APLICAMOS LOS CAMBIOS)
 # -------------------------------
 
 @login_required
+@permission_required('pedidos.view_cliente', raise_exception=True)
 def cliente_list(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     clientes = Cliente.objects.all().order_by('idclientes')
     return render(request, 'pedidos/cliente_list.html', {'clientes': clientes})
 
 
 @login_required
+@permission_required('pedidos.add_cliente', raise_exception=True)
 def cliente_create(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
@@ -191,10 +192,9 @@ def cliente_create(request):
 
 
 @login_required
+@permission_required('pedidos.change_cliente', raise_exception=True)
 def cliente_update(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
@@ -211,10 +211,9 @@ def cliente_update(request, pk):
 
 
 @login_required
+@permission_required('pedidos.delete_cliente', raise_exception=True)
 def cliente_delete(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
         cliente.delete()
@@ -226,22 +225,21 @@ def cliente_delete(request, pk):
 
 # -------------------------------
 # CRUD de Pedidos (solo Admins)
+# (AQUÍ APLICAMOS LOS CAMBIOS)
 # -------------------------------
 
 @login_required
+@permission_required('pedidos.view_pedido', raise_exception=True)
 def pedido_list(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     pedidos = Pedido.objects.all().order_by('-fecha_pedido')
     return render(request, 'pedidos/pedido_list.html', {'pedidos': pedidos})
 
 
 @login_required
+@permission_required('pedidos.view_pedido', raise_exception=True)
 def exportar_pedidos_excel(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     pedidos = Pedido.objects.all().order_by('-fecha_pedido')
 
     # Crear un libro de Excel
@@ -280,10 +278,9 @@ def exportar_pedidos_excel(request):
 
 
 @login_required
+@permission_required('pedidos.view_pedido', raise_exception=True)
 def pedido_detail(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     pedido = get_object_or_404(Pedido, pk=pk)
     for detalle in pedido.detalles.all():
         detalle.subtotal = detalle.cantidad * detalle.precio

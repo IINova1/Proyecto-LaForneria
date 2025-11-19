@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+# --- ¡IMPORTACIÓN MODIFICADA! ---
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 
 # --- ¡Importaciones Corregidas! ---
@@ -17,6 +18,7 @@ from openpyxl.utils import get_column_letter
 
 # --------------------
 # Vistas de Autenticación
+# (Esta sección queda igual)
 # --------------------
 
 def register(request):
@@ -89,21 +91,20 @@ def perfil(request):
 # ----------------------------------------
 # Vistas Protegidas (SOLO PARA ADMINS)
 # --- CRUD de Usuarios ---
+# (AQUÍ APLICAMOS LOS CAMBIOS)
 # ----------------------------------------
 
 @login_required
+@permission_required('usuarios.view_usuario', raise_exception=True)
 def usuario_list(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-        
+    # Ya no se necesita 'if not request.user.is_staff:'
     usuarios = Usuario.objects.all()
     return render(request, 'usuarios/usuario_list.html', {'usuarios': usuarios})
 
 @login_required
+@permission_required('usuarios.add_usuario', raise_exception=True)
 def usuario_create(request):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-        
+    # Ya no se necesita 'if not request.user.is_staff:'
     if request.method == 'POST':
         form = CustomRegisterForm(request.POST) # Sigue usando el form de registro
         if form.is_valid():
@@ -116,10 +117,9 @@ def usuario_create(request):
     return render(request, 'usuarios/register.html', {'form': form}) 
 
 @login_required
+@permission_required('usuarios.change_usuario', raise_exception=True)
 def usuario_update(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-        
+    # Ya no se necesita 'if not request.user.is_staff:'
     usuario = get_object_or_404(Usuario, pk=pk)
     
     # Los admins ahora usarán el UserProfileForm para editar
@@ -137,10 +137,9 @@ def usuario_update(request, pk):
     return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario}) 
 
 @login_required
+@permission_required('usuarios.delete_usuario', raise_exception=True)
 def usuario_delete(request, pk):
-    if not request.user.is_staff:
-        return redirect('pedidos:ver_productos')
-        
+    # Ya no se necesita 'if not request.user.is_staff:'
     usuario = get_object_or_404(Usuario, pk=pk)
     if request.method == 'POST':
         email_borrado = usuario.email
@@ -153,13 +152,12 @@ def usuario_delete(request, pk):
 
 # -------------------------------
 # EXPORTAR USUARIOS A EXCEL (SOLO ADMIN)
+# (AQUÍ APLICAMOS LOS CAMBIOS)
 # -------------------------------
 @login_required
+@permission_required('usuarios.view_usuario', raise_exception=True)
 def exportar_usuarios_excel(request):
-    if not request.user.is_staff:
-        messages.error(request, "No tienes permisos para exportar usuarios.")
-        return redirect('usuarios:usuario_list')
-
+    # Ya no se necesita 'if not request.user.is_staff:'
     usuarios = Usuario.objects.all().order_by('id')
 
     wb = openpyxl.Workbook()

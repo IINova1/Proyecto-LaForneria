@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     
     # --- ¡NUEVA APP AÑADIDA! ---
     'proveedores.apps.ProveedoresConfig',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +61,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ],
+}
 
 ROOT_URLCONF = 'monitoreo.urls'
 

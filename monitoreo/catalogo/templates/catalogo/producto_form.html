@@ -1,38 +1,351 @@
 {% extends 'base.html' %}
-{% block title %}Formulario de Producto{% endblock %}
+{% load static %}
+
+{% block title %}{{ form.instance.pk|yesno:"Editar,Nuevo" }} Producto - La Fornería{% endblock %}
+
+{% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --color-primario: #c07949; /* Terracota */
+            --color-secundario: #2c2c2c; /* Gris oscuro */
+            --color-fondo: #f9f7f2; /* Crema */
+            --color-texto: #4a4a4a;
+            --color-borde: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--color-fondo);
+            font-family: 'Poppins', sans-serif;
+            color: var(--color-texto);
+        }
+
+        /* Encabezado */
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(192, 121, 73, 0.15);
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: var(--color-secundario);
+            font-size: 2.5rem;
+            margin-bottom: 0;
+        }
+
+        /* Tarjetas de Sección */
+        .form-card {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .form-card-header {
+            background-color: rgba(192, 121, 73, 0.08);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(192, 121, 73, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .form-card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            color: var(--color-secundario);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .form-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Estilos de Inputs */
+        .form-label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--color-secundario);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-primario);
+            box-shadow: 0 0 0 0.25rem rgba(192, 121, 73, 0.15);
+        }
+
+        /* Botones */
+        .btn-brand {
+            background-color: var(--color-primario);
+            color: white;
+            border-radius: 30px;
+            padding: 0.8rem 2.5rem;
+            border: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .btn-brand:hover {
+            background-color: #a05e32;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(192, 121, 73, 0.3);
+        }
+
+        .btn-cancel {
+            background-color: transparent;
+            color: #6c757d;
+            border: 1px solid #ced4da;
+            border-radius: 30px;
+            padding: 0.8rem 2rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover {
+            background-color: #e9ecef;
+            color: var(--color-secundario);
+        }
+
+        /* Vista Previa de Imagen */
+        .image-preview-box {
+            width: 100%;
+            height: 200px;
+            background-color: #f8f9fa;
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #adb5bd;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .image-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>{{ form.instance.pk|yesno:"Editar Producto,Crear Producto" }}</h1>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-success">
-                    {{ form.instance.pk|yesno:"Actualizar,Registrar" }}
-                </button>
-                <a href="{% url 'catalogo:producto_list' %}" class="btn btn-secondary">Cancelar</a>
-            </form>
+<div class="container mt-5 mb-5" style="max-width: 1000px;">
+    
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                {{ form.instance.pk|yesno:"Editar,Nuevo" }} Producto
+            </h1>
+            <p class="text-muted mb-0">Completa la información para tu catálogo digital.</p>
+        </div>
+        <div>
+            <a href="{% url 'catalogo:producto_list' %}" class="btn btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Volver al listado
+            </a>
         </div>
     </div>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger rounded-3 shadow-sm mb-4">
+            <i class="bi bi-exclamation-octagon-fill me-2"></i> {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-tag text-primary"></i>
+                        <h5 class="form-card-title">Información Básica</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre del Producto</label>
+                                {{ form.nombre.errors }}
+                                <input type="text" name="nombre" value="{{ form.nombre.value|default:'' }}" class="form-control" placeholder="Ej: Pan Ciabatta Artesanal" required id="{{ form.nombre.id_for_label }}">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.marca.id_for_label }}" class="form-label">Marca</label>
+                                {{ form.marca.errors }}
+                                <input type="text" name="marca" value="{{ form.marca.value|default:'' }}" class="form-control" placeholder="Ej: La Fornería" id="{{ form.marca.id_for_label }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de Producto</label>
+                                {{ form.tipo.errors }}
+                                <input type="text" name="tipo" value="{{ form.tipo.value|default:'' }}" class="form-control" placeholder="Ej: Panadería, Bebida..." id="{{ form.tipo.id_for_label }}">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
+                                {{ form.descripcion.errors }}
+                                <textarea name="descripcion" class="form-control" rows="3" placeholder="Describe los ingredientes, sabor y textura..." id="{{ form.descripcion.id_for_label }}">{{ form.descripcion.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-currency-dollar text-success"></i>
+                        <h5 class="form-card-title">Inventario y Precio</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.precio.id_for_label }}" class="form-label">Precio de Venta ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="precio" value="{{ form.precio.value|default:'' }}" class="form-control" placeholder="0" id="{{ form.precio.id_for_label }}">
+                                </div>
+                                {{ form.precio.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.stock_actual.id_for_label }}" class="form-label">Stock Actual</label>
+                                <input type="number" name="stock_actual" value="{{ form.stock_actual.value|default:'' }}" class="form-control" placeholder="0" id="{{ form.stock_actual.id_for_label }}">
+                                {{ form.stock_actual.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.stock_minimo.id_for_label }}" class="form-label text-danger">Stock Mínimo (Alerta)</label>
+                                <input type="number" name="stock_minimo" value="{{ form.stock_minimo.value|default:'' }}" class="form-control" placeholder="0" id="{{ form.stock_minimo.id_for_label }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.stock_maximo.id_for_label }}" class="form-label text-success">Stock Máximo</label>
+                                <input type="number" name="stock_maximo" value="{{ form.stock_maximo.value|default:'' }}" class="form-control" placeholder="0" id="{{ form.stock_maximo.id_for_label }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-folder2-open text-warning"></i>
+                        <h5 class="form-card-title">Clasificación</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.Categorias.id_for_label }}" class="form-label">Categoría</label>
+                            {{ form.Categorias }} {{ form.Categorias.errors }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.Nutricional.id_for_label }}" class="form-label">Info. Nutricional</label>
+                            {{ form.Nutricional }}
+                            <div class="form-text"><a href="#" class="text-decoration-none small">+ Crear nueva ficha</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-image text-info"></i>
+                        <h5 class="form-card-title">Imagen</h5>
+                    </div>
+                    <div class="form-card-body text-center">
+                        <div class="image-preview-box mb-3">
+                            {% if form.instance.imagen %}
+                                <img src="{{ form.instance.imagen.url }}" alt="Preview">
+                            {% else %}
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-camera fs-1 opacity-50"></i>
+                                    <small>Sin imagen</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <input type="file" name="imagen" class="form-control form-control-sm" id="{{ form.imagen.id_for_label }}">
+                        {{ form.imagen.errors }}
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-calendar-event text-secondary"></i>
+                        <h5 class="form-card-title">Fechas</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.elaboracion.id_for_label }}" class="form-label">Fecha Elaboración</label>
+                            {{ form.elaboracion }} 
+                            {{ form.elaboracion.errors }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.caducidad.id_for_label }}" class="form-label">Fecha Caducidad</label>
+                            {{ form.caducidad }}
+                            {{ form.caducidad.errors }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-4 mb-5">
+            <a href="{% url 'catalogo:producto_list' %}" class="btn btn-cancel">Cancelar</a>
+            <button type="submit" class="btn btn-brand shadow">
+                <i class="bi bi-check-lg me-2"></i>Guardar Producto
+            </button>
+        </div>
+
+    </form>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    {% if messages %}
-        {% for message in messages %}
-            Swal.fire({
-                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
-                title: "{{ message|escapejs }}",
-                showConfirmButton: false,
-                timer: 2500,
-                timerProgressBar: true
-            });
-        {% endfor %}
-    {% endif %}
-});
+    // Aplicar estilos de Bootstrap a los campos renderizados automáticamente por Django (Selects y Dates)
+    document.addEventListener("DOMContentLoaded", function() {
+        // Seleccionar todos los inputs y selects dentro del formulario
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control') && !input.classList.contains('form-select') && input.type !== 'checkbox' && input.type !== 'file') {
+                input.classList.add('form-control');
+            }
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+            }
+        });
+
+        // SweetAlert para mensajes
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                    title: "{{ message|escapejs }}",
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
+                });
+            {% endfor %}
+        {% endif %}
+    });
 </script>
 {% endblock %}

@@ -1,80 +1,287 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ accion }} Proveedor{% endblock %}
+{% block title %}{{ accion }} Proveedor - La Fornería{% endblock %}
+
+{% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --color-primario: #c07949; /* Terracota */
+            --color-secundario: #2c2c2c; /* Gris oscuro */
+            --color-fondo: #f9f7f2; /* Crema */
+            --color-texto: #4a4a4a;
+            --color-borde: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--color-fondo);
+            font-family: 'Poppins', sans-serif;
+            color: var(--color-texto);
+        }
+
+        /* Encabezado */
+        .page-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: var(--color-secundario);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tarjeta del Formulario */
+        .form-card {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            background-color: rgba(192, 121, 73, 0.08);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(192, 121, 73, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .form-icon-box {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primario);
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--color-secundario);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-borde);
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        /* Inputs */
+        .form-label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-primario);
+            box-shadow: 0 0 0 4px rgba(192, 121, 73, 0.15);
+        }
+
+        /* Botones */
+        .btn-brand {
+            background-color: var(--color-primario);
+            color: white;
+            border-radius: 30px;
+            padding: 0.8rem 2.5rem;
+            border: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .btn-brand:hover {
+            background-color: #a05e32;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(192, 121, 73, 0.3);
+        }
+
+        .btn-cancel {
+            background-color: white;
+            color: #6c757d;
+            border: 1px solid #ced4da;
+            border-radius: 30px;
+            padding: 0.8rem 2rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-cancel:hover {
+            background-color: #f8f9fa;
+            color: var(--color-secundario);
+            border-color: #adb5bd;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="mb-4">{{ accion }} Proveedor</h2>
-
-            <form id="proveedorForm" method="POST" novalidate>
-                {% csrf_token %}
-                {{ form.as_p }}
-
-                <div class="mt-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">{{ accion }}</button>
-                    <a href="{% url 'proveedores:listar_proveedores' %}" class="btn btn-secondary">Volver</a>
-                </div>
-            </form>
-        </div>
+<div class="container mt-5 mb-5">
+    
+    <div class="page-header">
+        <h1 class="page-title">{{ accion }} Proveedor</h1>
+        <p class="text-muted">Completa la ficha técnica de tu socio comercial.</p>
     </div>
+
+    <form id="proveedorForm" method="POST" novalidate>
+        {% csrf_token %}
+        
+        <div class="form-card">
+            <div class="form-header">
+                <div class="form-icon-box">
+                    <i class="bi bi-building-add"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold text-secondary">Datos de la Empresa</h5>
+                    <small class="text-muted">Información legal y de contacto</small>
+                </div>
+            </div>
+
+            <div class="form-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-3 mb-4">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <label for="{{ form.rut.id_for_label }}" class="form-label">RUT</label>
+                        {{ form.rut }}
+                        {% for error in form.rut.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-8">
+                        <label for="{{ form.nombre_empresa.id_for_label }}" class="form-label">Nombre Empresa / Razón Social</label>
+                        {{ form.nombre_empresa }}
+                        {% for error in form.nombre_empresa.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-section-title mt-4">
+                    <i class="bi bi-person-lines-fill me-2"></i>Contacto y Rubro
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.rubro.id_for_label }}" class="form-label">Rubro</label>
+                        {{ form.rubro }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.nombre_contacto.id_for_label }}" class="form-label">Nombre de Contacto (Vendedor)</label>
+                        {{ form.nombre_contacto }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                            {{ form.email }}
+                        </div>
+                        {% for error in form.email.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-telephone"></i></span>
+                            {{ form.telefono }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección Comercial</label>
+                        {{ form.direccion }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-5">
+                    <a href="{% url 'proveedores:listar_proveedores' %}" class="btn btn-cancel">Cancelar</a>
+                    <button type="submit" class="btn btn-brand shadow">
+                        <i class="bi bi-check-lg me-2"></i>Guardar Proveedor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
 
-<!-- Validaciones Frontend -->
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('proveedorForm');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Aplicar estilos Bootstrap a los inputs de Django si no los tienen
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control') && !input.classList.contains('form-select')) {
+                input.classList.add('form-control');
+            }
+            // Ajuste para inputs dentro de input-group para quitar borde izquierdo
+            if (input.parentNode.classList.contains('input-group')) {
+                input.classList.add('border-start-0');
+            }
+        });
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();  // prevenimos el envío hasta validar
+        // Validaciones Frontend
+        const form = document.getElementById('proveedorForm');
+        form.addEventListener('submit', function (e) {
+            let rut = document.getElementById('id_rut').value.trim();
+            let nombre = document.getElementById('id_nombre_empresa').value.trim();
+            let email = document.getElementById('id_email').value.trim();
 
-        let rut = document.getElementById('id_rut').value.trim();
-        let nombre = document.getElementById('id_nombre_empresa').value.trim();
-        let email = document.getElementById('id_email').value.trim();
-        let telefono = document.getElementById('id_telefono').value.trim();
-
-        // Validar campos obligatorios
-        if (!rut || !nombre || !email) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Campos obligatorios faltantes',
-                text: 'RUT, Nombre de la empresa y Email son obligatorios.'
-            });
-            return false;
-        }
-
-        // Validar formato de RUT básico
-        let rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
-        if (!rutRegex.test(rut)) {
-            Swal.fire('Error', 'Formato de RUT inválido. Ej: 12.345.678-9', 'error');
-            return false;
-        }
-
-        // Validar email básico
-        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            Swal.fire('Error', 'Formato de correo electrónico inválido.', 'error');
-            return false;
-        }
-
-        // Validar teléfono (opcional)
-        if (telefono) {
-            let telRegex = /^\+?\d[\d\s\-]{7,14}$/;
-            if (!telRegex.test(telefono)) {
-                Swal.fire('Error', 'Teléfono inválido. Ej: +56 9 1234 5678', 'error');
+            if (!rut || !nombre || !email) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Faltan datos',
+                    text: 'RUT, Empresa y Email son obligatorios.',
+                    confirmButtonColor: '#c07949'
+                });
                 return false;
             }
-        }
 
-        // Evitar doble clic en enviar
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Procesando...';
-
-        // Si todo está bien, enviamos el formulario
-        form.submit();
+            // Validación simple de RUT
+            const rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/;
+            if (!rutRegex.test(rut)) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato RUT inválido',
+                    text: 'Ejemplo: 12.345.678-9',
+                    confirmButtonColor: '#c07949'
+                });
+                return false;
+            }
+        });
     });
-});
 </script>
 {% endblock %}

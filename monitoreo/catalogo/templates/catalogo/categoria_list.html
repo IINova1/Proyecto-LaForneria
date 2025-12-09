@@ -1,101 +1,349 @@
 {% extends "base.html" %}
 {% block title %}Categorías - La Fornería{% endblock %}
 
+{% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --color-primario: #c07949; /* Terracota */
+            --color-secundario: #2c2c2c; /* Gris oscuro */
+            --color-fondo: #f9f7f2; /* Crema */
+            --color-texto: #4a4a4a;
+            --color-borde: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--color-fondo);
+            font-family: 'Poppins', sans-serif;
+            color: var(--color-texto);
+        }
+
+        /* Encabezado */
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(192, 121, 73, 0.15);
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: var(--color-secundario);
+            font-size: 2.5rem;
+            margin-bottom: 0;
+        }
+
+        /* Tarjeta Contenedora */
+        .category-card {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        /* Buscador */
+        .search-input {
+            border-radius: 30px;
+            border: 1px solid #ced4da;
+            padding-left: 1.5rem;
+            transition: all 0.3s;
+        }
+        .search-input:focus {
+            border-color: var(--color-primario);
+            box-shadow: 0 0 0 0.25rem rgba(192, 121, 73, 0.15);
+        }
+
+        /* Botones */
+        .btn-brand {
+            background-color: var(--color-primario);
+            color: white;
+            border-radius: 30px;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-brand:hover {
+            background-color: #a05e32;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-excel {
+            background-color: #198754;
+            color: white;
+            border-radius: 30px;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-excel:hover {
+            background-color: #146c43;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Tabla Estilizada */
+        .table-custom thead {
+            background-color: var(--color-secundario);
+            color: white;
+        }
+        
+        .table-custom th {
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border: none;
+            padding: 1.2rem 1.5rem;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(192, 121, 73, 0.03);
+        }
+
+        /* Icono Decorativo de Categoría */
+        .cat-icon-placeholder {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(192, 121, 73, 0.1);
+            color: var(--color-primario);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        /* Botones de Acción en Tabla */
+        .btn-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            background-color: transparent;
+        }
+        
+        .btn-edit { color: #ffc107; border-color: #ffc107; }
+        .btn-edit:hover { background-color: #ffc107; color: white; }
+        
+        .btn-delete { color: #dc3545; border-color: #dc3545; }
+        .btn-delete:hover { background-color: #dc3545; color: white; }
+
+        /* Paginación */
+        .pagination .page-link {
+            border: none;
+            color: var(--color-secundario);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 3px;
+        }
+        .pagination .active .page-link {
+            background-color: var(--color-primario);
+            color: white;
+            font-weight: bold;
+        }
+        .pagination .page-link:hover:not(.active) {
+            background-color: #e9ecef;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2">Gestión de Categorías</h1>
+<div class="container mt-5 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-end page-header flex-wrap gap-3">
+        <div>
+            <h1 class="page-title">Categorías</h1>
+            <p class="text-muted mb-0">Organiza los tipos de productos de tu catálogo.</p>
+        </div>
 
         {% if user.is_staff %}
-        <div>
-            <a href="{% url 'catalogo:categoria_create' %}" class="btn btn-primary">Agregar Categoría</a>
-            <a href="{% url 'catalogo:categoria_export_excel' %}" class="btn btn-success">Exportar a Excel</a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'catalogo:categoria_create' %}" class="btn btn-brand shadow-sm">
+                <i class="bi bi-plus-lg"></i> Nueva Categoría
+            </a>
+            <a href="{% url 'catalogo:categoria_export_excel' %}" id="btn-exportar-excel" class="btn btn-excel shadow-sm">
+                <i class="bi bi-file-earmark-excel"></i> Exportar
+            </a>
         </div>
         {% endif %}
     </div>
 
-    <form method="get" class="mb-3">
-        <input type="text" name="nombre" placeholder="Buscar por nombre..." value="{{ nombre_filtro }}" class="form-control" style="max-width:300px; display:inline-block;">
-        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
-    </form>
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-4">
+            <form method="get" class="d-flex position-relative">
+                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 10px;"></i>
+                <input type="text" name="nombre" 
+                       placeholder="Buscar categoría..." 
+                       value="{{ nombre_filtro }}" 
+                       class="form-control search-input" 
+                       style="padding-left: 40px;">
+                {% if nombre_filtro %}
+                    <a href="{% url 'catalogo:categoria_list' %}" class="btn btn-link text-muted position-absolute" style="right: 5px; top: 2px;">
+                        <i class="bi bi-x"></i>
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="category-card">
+        <div class="table-responsive">
             {% if page_obj %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for categoria in page_obj %}
-                        <tr>
-                            <td>{{ categoria.id }}</td>
-                            <td>{{ categoria.nombre }}</td>
-                            <td>{{ categoria.descripcion|default:"Sin descripción" }}</td>
-                            <td class="text-center">
-                                <a href="{% url 'catalogo:categoria_update' categoria.id %}" class="btn btn-warning btn-sm">Editar</a>
+            <table class="table table-custom table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Nombre</th>
+                        <th>Descripción</th>
+                        <th class="text-center">ID</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in page_obj %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="cat-icon-placeholder shadow-sm">
+                                    <i class="bi bi-tag-fill"></i>
+                                </div>
+                                <span class="fw-bold text-dark">{{ categoria.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="text-muted">
+                            {% if categoria.descripcion %}
+                                {{ categoria.descripcion|truncatechars:50 }}
+                            {% else %}
+                                <span class="fst-italic text-black-50 small">Sin descripción</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center text-secondary font-monospace">
+                            #{{ categoria.id }}
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'catalogo:categoria_update' categoria.id %}" 
+                                   class="btn-icon btn-edit" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
                                 <form action="{% url 'catalogo:categoria_delete' categoria.id %}" method="post" class="d-inline form-delete">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                    <button type="submit" class="btn-icon btn-delete" title="Eliminar">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
                                 </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- PAGINACIÓN -->
-            <nav>
-                <ul class="pagination">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a href="?page=1&nombre={{ nombre_filtro }}" class="page-link">Primera</a></li>
-                        <li class="page-item"><a href="?page={{ page_obj.previous_page_number }}&nombre={{ nombre_filtro }}" class="page-link">Anterior</a></li>
-                    {% endif %}
-                    <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a href="?page={{ page_obj.next_page_number }}&nombre={{ nombre_filtro }}" class="page-link">Siguiente</a></li>
-                        <li class="page-item"><a href="?page={{ page_obj.paginator.num_pages }}&nombre={{ nombre_filtro }}" class="page-link">Última</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-            <div class="alert alert-info text-center" role="alert">
-                No hay categorías registradas aún. ¡Agrega la primera!
+            <div class="text-center py-5">
+                <i class="bi bi-tags text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                <h4 class="mt-3 text-secondary">No se encontraron categorías</h4>
+                <p class="text-muted">Agrega una nueva categoría para comenzar a organizar tu inventario.</p>
             </div>
             {% endif %}
         </div>
     </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&nombre={{ nombre_filtro }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted small">Pág {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&nombre={{ nombre_filtro }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Alerta de eliminación
     const deleteForms = document.querySelectorAll('.form-delete');
     deleteForms.forEach(form => {
         form.addEventListener('submit', function (event) {
             event.preventDefault(); 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: "¡No podrás revertir esta acción!",
+                text: "Esta acción podría afectar a los productos asociados.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, ¡eliminar!',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) form.submit();
             });
         });
     });
+
+    // Alerta de exportación
+    const btnExport = document.getElementById("btn-exportar-excel");
+    if (btnExport) {
+        btnExport.addEventListener("click", (event) => {
+            event.preventDefault();
+            Swal.fire({
+                title: "Generando reporte...",
+                text: "Tu archivo Excel de categorías se está descargando.",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            setTimeout(() => {
+                window.location.href = btnExport.href;
+            }, 1000);
+        });
+    }
 });
 </script>
 {% endblock %}

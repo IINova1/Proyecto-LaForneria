@@ -1,21 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-# --- ¡IMPORTACIÓN AÑADIDA! ---
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 # --- Importaciones ---
 from .models import Pedido, DetallePedido, Cliente
 from .forms import ClienteForm
 from catalogo.models import Producto
-from django.http import HttpResponse
-import openpyxl
-from openpyxl.utils import get_column_letter
 
 # --------------------
-# Vistas de la Tienda (Públicas)
-# (Estas vistas no cambian, ya que son para clientes)
+# Vistas de la Tienda (Públicas / Clientes)
 # --------------------
 
 def ver_productos(request):
@@ -59,7 +57,7 @@ def ver_productos(request):
 
     page_number = request.GET.get('page', 1)
 
-    # --- Filtro base ---
+    # --- Filtro base (Solo productos con stock) ---
     productos_list = Producto.objects.filter(stock_actual__gt=0)
 
     # --- Filtro de búsqueda ---
@@ -97,6 +95,9 @@ def ver_productos(request):
 
 
 def agregar_al_carrito(request, pk):
+    """
+    Agrega un producto al carrito almacenado en la sesión.
+    """
     producto = get_object_or_404(Producto, pk=pk)
     try:
         cantidad = int(request.POST.get('cantidad', 1))
@@ -108,28 +109,51 @@ def agregar_al_carrito(request, pk):
     request.session['carrito'] = carrito
 
     messages.success(request, f'¡Producto "{producto.nombre}" agregado al carrito!')
-    return redirect('pedidos:ver_carrito')
+    
+    # --- CAMBIO CLAVE AQUÍ ---
+    # request.META.get('HTTP_REFERER') obtiene la URL exacta anterior (con filtros y paginación).
+    # El segundo parámetro 'pedidos:ver_productos' es un respaldo por si el navegador no envía el referer.
+    return redirect(request.META.get('HTTP_REFERER', 'pedidos:ver_productos'))
 
 
 def ver_carrito(request):
+    """
+    Muestra el contenido del carrito, calcula subtotales y total general.
+    """
     carrito = request.session.get('carrito', {})
     items_carrito = []
     total_carrito = 0
+    total_items = 0  # Variable para contar la cantidad total de productos
 
     for producto_id, cantidad in carrito.items():
         producto = get_object_or_404(Producto, pk=producto_id)
-        subtotal = producto.precio * cantidad
-        items_carrito.append({'producto': producto, 'cantidad': cantidad, 'subtotal': subtotal})
+        
+        # --- SEGURIDAD: Convertir a enteros para cálculo matemático ---
+        precio_num = int(producto.precio or 0)
+        cantidad_num = int(cantidad or 0)
+        
+        subtotal = precio_num * cantidad_num
+        
+        items_carrito.append({
+            'producto': producto, 
+            'cantidad': cantidad_num, 
+            'subtotal': subtotal
+        })
         total_carrito += subtotal
+        total_items += cantidad_num # Sumar al contador de items
 
     return render(request, 'pedidos/ver_carrito.html', {
         'items_carrito': items_carrito,
-        'total_carrito': total_carrito
+        'total_carrito': total_carrito,
+        'total_items': total_items # Enviamos el total de unidades al template
     })
 
 
 @login_required
 def realizar_pedido(request):
+    """
+    Procesa el carrito y crea un Pedido en la base de datos.
+    """
     carrito = request.session.get('carrito', {})
     if not carrito:
         messages.warning(request, "Tu carrito está vacío.")
@@ -137,38 +161,56 @@ def realizar_pedido(request):
 
     total_pedido = 0
     items_para_pedido = []
+    
+    # 1. Calcular total y validar productos
     for producto_id, cantidad in carrito.items():
         producto = get_object_or_404(Producto, pk=producto_id)
-        total_pedido += producto.precio * cantidad
-        items_para_pedido.append((producto, cantidad))
+        
+        # Validación básica de stock antes de procesar
+        if cantidad > producto.stock_actual:
+            messages.error(request, f"No hay suficiente stock para {producto.nombre}.")
+            return redirect('pedidos:ver_carrito')
+            
+        precio_num = int(producto.precio or 0)
+        total_pedido += precio_num * cantidad
+        items_para_pedido.append((producto, cantidad, precio_num))
 
+    # 2. Crear el Pedido
     pedido = Pedido.objects.create(usuario=request.user, total=total_pedido)
-    for producto, cantidad in items_para_pedido:
+    
+    # 3. Crear Detalles y Descontar Stock
+    for producto, cantidad, precio in items_para_pedido:
         DetallePedido.objects.create(
-            pedido=pedido, producto=producto, cantidad=cantidad, precio=producto.precio
+            pedido=pedido, 
+            producto=producto, 
+            cantidad=cantidad, 
+            precio=precio
         )
+        # Descontar stock
         producto.stock_actual -= cantidad
         producto.save()
 
+    # 4. Limpiar carrito
     request.session['carrito'] = {}
+    
     messages.success(request, "¡Pedido realizado con éxito!")
-    # SweetAlert integrado al template via mensaje de Django
     return redirect('pedidos:pedido_exitoso')
 
 
 def pedido_exitoso(request):
+    """
+    Pantalla de confirmación de compra.
+    """
     return render(request, 'pedidos/pedido_exitoso.html')
 
 
 # -------------------------------
-# CRUD de Clientes (solo Admins)
-# (AQUÍ APLICAMOS LOS CAMBIOS)
+# CRUD de Clientes (Solo Admins)
 # -------------------------------
 
 @login_required
 @permission_required('pedidos.view_cliente', raise_exception=True)
 def cliente_list(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
     clientes = Cliente.objects.all().order_by('idclientes')
     return render(request, 'pedidos/cliente_list.html', {'clientes': clientes})
 
@@ -176,7 +218,6 @@ def cliente_list(request):
 @login_required
 @permission_required('pedidos.add_cliente', raise_exception=True)
 def cliente_create(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
@@ -194,7 +235,6 @@ def cliente_create(request):
 @login_required
 @permission_required('pedidos.change_cliente', raise_exception=True)
 def cliente_update(request, pk):
-    # Ya no se necesita 'if not request.user.is_staff:'
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
@@ -213,7 +253,6 @@ def cliente_update(request, pk):
 @login_required
 @permission_required('pedidos.delete_cliente', raise_exception=True)
 def cliente_delete(request, pk):
-    # Ya no se necesita 'if not request.user.is_staff:'
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
         cliente.delete()
@@ -224,22 +263,33 @@ def cliente_delete(request, pk):
 
 
 # -------------------------------
-# CRUD de Pedidos (solo Admins)
-# (AQUÍ APLICAMOS LOS CAMBIOS)
+# CRUD de Pedidos (Solo Admins)
 # -------------------------------
 
 @login_required
 @permission_required('pedidos.view_pedido', raise_exception=True)
 def pedido_list(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
+    """
+    Lista de pedidos con opción de búsqueda.
+    """
     pedidos = Pedido.objects.all().order_by('-fecha_pedido')
+    
+    # Filtro simple por nombre de cliente o estado
+    q = request.GET.get('q')
+    if q:
+        pedidos = pedidos.filter(
+            Q(usuario__first_name__icontains=q) |
+            Q(usuario__last_name__icontains=q) |
+            Q(usuario__email__icontains=q) |
+            Q(estado__icontains=q)
+        )
+
     return render(request, 'pedidos/pedido_list.html', {'pedidos': pedidos})
 
 
 @login_required
 @permission_required('pedidos.view_pedido', raise_exception=True)
 def exportar_pedidos_excel(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
     pedidos = Pedido.objects.all().order_by('-fecha_pedido')
 
     # Crear un libro de Excel
@@ -280,8 +330,9 @@ def exportar_pedidos_excel(request):
 @login_required
 @permission_required('pedidos.view_pedido', raise_exception=True)
 def pedido_detail(request, pk):
-    # Ya no se necesita 'if not request.user.is_staff:'
     pedido = get_object_or_404(Pedido, pk=pk)
+    
+    # Calcular subtotales para mostrarlos en el template si no están guardados
     for detalle in pedido.detalles.all():
         detalle.subtotal = detalle.cantidad * detalle.precio
 

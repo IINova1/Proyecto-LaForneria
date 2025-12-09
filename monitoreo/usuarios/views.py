@@ -1,32 +1,29 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login
-# --- ¡IMPORTACIÓN MODIFICADA! ---
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
-
-# --- ¡Importaciones Corregidas! ---
-# Importamos los formularios y modelos desde la app local 'usuarios'
-from .forms import (
-    CustomRegisterForm, UserProfileForm, DireccionForm
-)
-from .models import Usuario, Direccion
-
-# --- IMPORTACIONES ADICIONALES PARA EXCEL Y HTTP ---
+from django.db.models import Q
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 
+# Importamos los formularios y modelos desde la app local 'usuarios'
+from .forms import (
+    CustomRegisterForm, UserProfileForm, DireccionForm
+)
+from .models import Usuario, Direccion, Rol
+
 # --------------------
 # Vistas de Autenticación
-# (Esta sección queda igual)
 # --------------------
 
 def register(request):
     """
-    Vista para el registro de nuevos usuarios.
+    Vista para el registro de nuevos usuarios (Público).
     """
     if request.method == 'POST':
-        # SE AGREGA request.FILES AQUÍ PARA QUE LA IMAGEN SE GUARDE
+        # Se agrega request.FILES para que la imagen se guarde si el usuario sube una
         form = CustomRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
@@ -39,7 +36,7 @@ def register(request):
     
     return render(request, 'usuarios/register.html', {'form': form})
 
-# --- ¡NUEVA VISTA DE PERFIL! ---
+
 @login_required
 def perfil(request):
     """
@@ -53,12 +50,12 @@ def perfil(request):
         direccion = None
 
     if request.method == 'POST':
-        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
+        # Se usa UserProfileForm para editar datos personales + request.FILES para avatar
         user_form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         direccion_form = DireccionForm(request.POST, instance=direccion)
         
         if user_form.is_valid() and direccion_form.is_valid():
-            user_form.save() # Guarda los cambios en el Usuario (ej. fono, materno)
+            user_form.save() # Guarda los cambios en el Usuario
             
             # Guarda la dirección
             nueva_direccion = direccion_form.save(commit=False)
@@ -85,29 +82,79 @@ def perfil(request):
         'user_form': user_form,
         'direccion_form': direccion_form
     }
-    # Renderiza la plantilla
     return render(request, 'usuarios/perfil.html', context)
 
 
 # ----------------------------------------
 # Vistas Protegidas (SOLO PARA ADMINS)
 # --- CRUD de Usuarios ---
-# (AQUÍ APLICAMOS LOS CAMBIOS)
 # ----------------------------------------
 
 @login_required
 @permission_required('usuarios.view_usuario', raise_exception=True)
 def usuario_list(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
-    usuarios = Usuario.objects.all()
-    return render(request, 'usuarios/usuario_list.html', {'usuarios': usuarios})
+    """
+    Lista de usuarios con filtros avanzados (Búsqueda, Rol, Estado) y paginación.
+    """
+    # 1. Consulta Base Optimizada
+    usuarios_qs = Usuario.objects.all().select_related('Roles', 'Direccion').order_by('id')
+
+    # 2. Capturar parámetros de la URL
+    q = request.GET.get('q', '').strip()
+    rol_id = request.GET.get('rol', '')
+    estado = request.GET.get('estado', '')
+
+    # 3. Aplicar Filtros Dinámicos
+    if q:
+        usuarios_qs = usuarios_qs.filter(
+            Q(first_name__icontains=q) | 
+            Q(last_name__icontains=q) | 
+            Q(email__icontains=q) | 
+            Q(run__icontains=q)
+        )
+    
+    if rol_id:
+        if rol_id == 'admin': # Filtro especial para superusuarios
+            usuarios_qs = usuarios_qs.filter(is_superuser=True)
+        elif rol_id == 'sin_rol':
+            usuarios_qs = usuarios_qs.filter(Roles__isnull=True, is_superuser=False)
+        else:
+            usuarios_qs = usuarios_qs.filter(Roles__id=rol_id)
+
+    if estado:
+        if estado == 'activo':
+            usuarios_qs = usuarios_qs.filter(is_active=True)
+        elif estado == 'inactivo':
+            usuarios_qs = usuarios_qs.filter(is_active=False)
+
+    # 4. Paginación (10 usuarios por página)
+    paginator = Paginator(usuarios_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 5. Obtener roles para el dropdown de filtros
+    roles = Rol.objects.all()
+
+    context = {
+        'usuarios': page_obj,
+        'page_obj': page_obj,
+        'roles': roles,
+        # Devolvemos los filtros para mantenerlos seleccionados en el HTML
+        'current_q': q,
+        'current_rol': rol_id,
+        'current_estado': estado
+    }
+    return render(request, 'usuarios/usuario_list.html', context)
+
 
 @login_required
 @permission_required('usuarios.add_usuario', raise_exception=True)
 def usuario_create(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
+    """
+    Crear usuario desde el panel de administración.
+    """
     if request.method == 'POST':
-        form = CustomRegisterForm(request.POST) # Sigue usando el form de registro
+        form = CustomRegisterForm(request.POST) 
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario creado exitosamente.')
@@ -117,15 +164,17 @@ def usuario_create(request):
         
     return render(request, 'usuarios/register.html', {'form': form}) 
 
+
 @login_required
 @permission_required('usuarios.change_usuario', raise_exception=True)
 def usuario_update(request, pk):
-    # Ya no se necesita 'if not request.user.is_staff:'
+    """
+    Editar usuario existente.
+    """
     usuario = get_object_or_404(Usuario, pk=pk)
     
-    # Los admins ahora usarán el UserProfileForm para editar
     if request.method == 'POST':
-        # --- ¡CAMBIO AQUÍ! Se añade request.FILES ---
+        # Se usa UserProfileForm para que el admin pueda editar lo mismo que el usuario
         form = UserProfileForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             form.save()
@@ -134,13 +183,15 @@ def usuario_update(request, pk):
     else:
         form = UserProfileForm(instance=usuario)
         
-    # Renderiza en la plantilla de perfil, pero podría tener una propia
     return render(request, 'usuarios/perfil_admin_edit.html', {'form': form, 'usuario_editado': usuario}) 
+
 
 @login_required
 @permission_required('usuarios.delete_usuario', raise_exception=True)
 def usuario_delete(request, pk):
-    # Ya no se necesita 'if not request.user.is_staff:'
+    """
+    Eliminar usuario.
+    """
     usuario = get_object_or_404(Usuario, pk=pk)
     if request.method == 'POST':
         email_borrado = usuario.email
@@ -153,12 +204,13 @@ def usuario_delete(request, pk):
 
 # -------------------------------
 # EXPORTAR USUARIOS A EXCEL (SOLO ADMIN)
-# (AQUÍ APLICAMOS LOS CAMBIOS)
 # -------------------------------
 @login_required
 @permission_required('usuarios.view_usuario', raise_exception=True)
 def exportar_usuarios_excel(request):
-    # Ya no se necesita 'if not request.user.is_staff:'
+    """
+    Genera un reporte Excel con todos los usuarios registrados.
+    """
     usuarios = Usuario.objects.all().order_by('id')
 
     wb = openpyxl.Workbook()
@@ -178,8 +230,8 @@ def exportar_usuarios_excel(request):
         ws.cell(row=row_num, column=4).value = usuario.email
         ws.cell(row=row_num, column=5).value = usuario.run
         ws.cell(row=row_num, column=6).value = usuario.fono
-        ws.cell(row=row_num, column=7).value = usuario.Roles.nombre if usuario.Roles else ""
-        ws.cell(row=row_num, column=8).value = f"{usuario.Direccion.calle} {usuario.Direccion.numero}" if usuario.Direccion else ""
+        ws.cell(row=row_num, column=7).value = usuario.Roles.nombre if usuario.Roles else "Sin Rol"
+        ws.cell(row=row_num, column=8).value = f"{usuario.Direccion.calle} {usuario.Direccion.numero}" if usuario.Direccion else "Sin Dirección"
 
     for col_num in range(1, len(columnas) + 1):
         ws.column_dimensions[get_column_letter(col_num)].width = 20
